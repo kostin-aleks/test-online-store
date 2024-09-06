@@ -52,9 +52,6 @@ INSTALLED_APPS = [
     'djmoney',
     'drf_yasg',
 
-    'online_store.accounts',
-    'online_store.config',
-    'online_store.general',
 ]
 
 MIDDLEWARE = [
@@ -110,10 +107,6 @@ DATABASES = {
     },
 }
 
-AUTH_USER_MODEL = 'accounts.User'
-# AUTHENTICATION_BACKENDS = [
-#    'online_store.config.auth.EmailAuthBackend',
-# ]
 
 # DRF settings
 REST_FRAMEWORK = {

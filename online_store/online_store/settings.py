@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     'djmoney',
     'drf_yasg',
 
+    'online_store.accounts',
+
 ]
 
 MIDDLEWARE = [

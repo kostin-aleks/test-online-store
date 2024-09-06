@@ -50,9 +50,9 @@ class UserProfile(models.Model):
     @classmethod
     def users_with_perm(cls, perm_name):
         return get_user_model().objects.filter(
-            models.Q(is_superuser=True) |
-            models.Q(user_permissions__codename=perm_name) |
-            models.Q(groups__permissions__codename=perm_name)).distinct()
+            models.Q(is_superuser=True)
+            | models.Q(user_permissions__codename=perm_name)
+            | models.Q(groups__permissions__codename=perm_name)).distinct()
 
     def set_manager_permission(self):
         """
@@ -93,3 +93,9 @@ class UserProfile(models.Model):
         """
         return f"{self.user.last_name} {self.user.first_name}"
 
+    def create_token(self):
+        refresh = RefreshToken.for_user(self.user)
+        return {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }

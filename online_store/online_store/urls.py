@@ -55,7 +55,9 @@ urlpatterns = [
     path('', health_check),
     path("admin/", admin.site.urls),
 
-    path("docs/", schema_view.with_ui('swagger', cache_timeout=0), name="schema-swagger-ui-partner"),
+    path("docs/", schema_view.with_ui('swagger', cache_timeout=0), name="schema-swagger"),
+    path('auth/', include('online_store.accounts.auth-urls')),
+    path('accounts/', include('online_store.accounts.urls')),
 
 ]
 

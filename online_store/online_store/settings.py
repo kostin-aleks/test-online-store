@@ -51,8 +51,10 @@ INSTALLED_APPS = [
     'django_filters',
     'djmoney',
     'drf_yasg',
+    'drf_spectacular',
 
     'online_store.accounts',
+    'online_store.general',
 
 ]
 
@@ -126,7 +128,8 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 10,
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    # 'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     # 'EXCEPTION_HANDLER': 'config.utils.exceptions.core_exception_handler',
     'NON_FIELD_ERRORS_KEY': 'detail',
     'COERCE_DECIMAL_TO_STRING': False
@@ -202,3 +205,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# API tests
+API_TEST_MANAGER_USERNAME = os.environ.get('API_TEST_MANAGER_USERNAME')
+API_TEST_MANAGER_PASSWORD = os.environ.get('API_TEST_MANAGER_PASSWORD')
+API_TEST_CLIENT_USERNAME = os.environ.get('API_TEST_CLIENT_USERNAME')
+API_TEST_CLIENT_PASSWORD = os.environ.get('API_TEST_CLIENT_PASSWORD')
+API_TEST_ADMIN_USERNAME = os.environ.get('API_TEST_ADMIN_USERNAME')
+API_TEST_ADMIN_PASSWORD = os.environ.get('API_TEST_ADMIN_PASSWORD')

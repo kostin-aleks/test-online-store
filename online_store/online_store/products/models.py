@@ -29,6 +29,10 @@ class Category(models.Model):
     def __str__(self) -> str:
         return self.name
 
+    @property
+    def subcategories(self):
+        return self.sub_categories.all().order_by('slug')
+
 
 class SubCategory(models.Model):
     slug = models.SlugField(
@@ -38,7 +42,7 @@ class SubCategory(models.Model):
         _("description"), max_length=256, null=True, blank=True)
     category = models.ForeignKey(
         Category, verbose_name=_("category"),
-        related_name='subcategories',
+        related_name='sub_categories',
         on_delete=models.SET_NULL, null=True)
 
     def __str__(self) -> str:

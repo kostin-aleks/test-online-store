@@ -58,7 +58,7 @@ PRODUCT_DATA = [
     },
     {
         'name': 'Карабін Maillon Rapid 10,0 1 / 2RD IN CE D10мм дельта нержавейка 2014',
-        'slug': 'karabin-maillon-rapid-100-1-2rd-in-ce-d10mm-delta-nerzhavejka-2014',
+        'slug': 'karabin-maillon-rapid-100-1-2rd-in-ce',
         'description': '''Карабін Maillon Rapid 10,0 1 / 2RD IN CE D10мм дельта нержавейка 2014''',
         'details': [],
         'features': {'Виробник': 'Rapid'},
@@ -170,6 +170,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
 
         for item in PRODUCT_DATA:
+            print(f"SLUG: {item['slug']}")
             product = Product.objects.filter(slug=item['slug']).first()
             if product is None:
                 product = Product.objects.create(

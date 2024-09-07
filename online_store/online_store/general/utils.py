@@ -49,3 +49,29 @@ def get_gender(value):
     if isinstance(value, int):
         return value
     return None
+
+
+def atoi(variable, default=None):
+    """
+    get int of variable
+    """
+    if isinstance(variable, str) and len(variable):
+        s = ''
+        i = 0
+        while i < len(variable) and variable[i].isdigit():
+            print(i, variable[i])
+            s = s + variable[i]
+            i += 1
+        variable = s
+
+    try:
+        variable = int(variable)
+    except ValueError:
+        try:
+            variable = float(variable)
+            variable = int(variable)
+        except ValueError:
+            variable = default
+    except TypeError:
+        variable = default
+    return variable

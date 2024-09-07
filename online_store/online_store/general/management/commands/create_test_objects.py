@@ -16,5 +16,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         call_command('create_test_client')
         call_command('create_test_manager')
+        call_command('create_test_categories')
+        call_command('create_test_products')
 
         print('New test objects are created.')

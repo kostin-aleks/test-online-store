@@ -51,11 +51,12 @@ INSTALLED_APPS = [
     'django_filters',
     'djmoney',
     'drf_yasg',
-    'drf_spectacular',
 
     'online_store.accounts',
     'online_store.general',
+    'online_store.products',
 
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [

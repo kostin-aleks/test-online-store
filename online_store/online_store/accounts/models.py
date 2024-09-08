@@ -11,6 +11,10 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 
+from djmoney.models.fields import MoneyField
+from djmoney.money import Money
+from djmoney.models.validators import MinMoneyValidator
+
 logger = logging.getLogger(__name__)
 
 GENDERS = [
@@ -50,9 +54,9 @@ class UserProfile(models.Model):
     @classmethod
     def users_with_perm(cls, perm_name):
         return get_user_model().objects.filter(
-            models.Q(is_superuser=True)
-            | models.Q(user_permissions__codename=perm_name)
-            | models.Q(groups__permissions__codename=perm_name)).distinct()
+            models.Q(is_superuser=True) |
+            models.Q(user_permissions__codename=perm_name) |
+            models.Q(groups__permissions__codename=perm_name)).distinct()
 
     def set_manager_permission(self):
         """
@@ -99,3 +103,25 @@ class UserProfile(models.Model):
             'refresh': str(refresh),
             'access': str(refresh.access_token),
         }
+
+
+class TopUpAccount(models.Model):
+    user = models.ForeignKey(
+        get_user_model(), on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_('user'), related_name='topupaccount')
+    amount = MoneyField(
+        _('price'), max_digits=14, decimal_places=2,
+        default_currency='USD', validators=[MinMoneyValidator(0)],
+        null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f"{self.user.username}-{self.amount}"
+
+    class Meta:
+        verbose_name = _("Replenish Account")
+        verbose_name_plural = _("Replenish Accounts")
+        db_table = 'accounts_topup_account'
+
+

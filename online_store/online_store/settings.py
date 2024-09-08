@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'online_store.accounts',
     'online_store.general',
     'online_store.products',
+    'online_store.orders',
 
     'drf_spectacular',
 ]

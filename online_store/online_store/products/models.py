@@ -110,3 +110,42 @@ class Product(models.Model):
 
     def __str__(self) -> str:
         return f'{self.name}'
+
+
+class Invoice(models.Model):
+    uuid = models.UUIDField(_("uuid"), default=uuid.uuid4, editable=False)
+    date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    def __str__(self) -> str:
+        return self.uuid
+
+    class Meta:
+        verbose_name = _("Invoice")
+        verbose_name_plural = _("Invoices")
+        db_table = 'products_invoice'
+
+
+class InvoiceItem(models.Model):
+    product = models.ForeignKey(
+        Product, on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_('product'))
+    invoice = models.ForeignKey(
+        Invoice, on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='items', verbose_name=_('invoice'))
+    amount = models.IntegerField()
+    price = MoneyField(
+        _('price'), max_digits=14, decimal_places=2,
+        default_currency='USD', validators=[MinMoneyValidator(0)],
+        null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f"{self.invoice.id}-{self.product.name}"
+
+    class Meta:
+        verbose_name = _("Invoice Item")
+        verbose_name_plural = _("Invoice Items")
+        db_table = 'products_invoice_item'
+

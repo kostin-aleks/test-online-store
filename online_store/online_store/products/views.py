@@ -28,6 +28,7 @@ from rest_framework import status
 from drf_spectacular.utils import extend_schema
 from djmoney.money import Money
 
+from online_store.general.error_messages import PRODUCT_NOT_FOUND
 from online_store.general.utils import get_gender, atoi
 from online_store.general.permissions import (
     IsManager, IsManagerOrReadOnly, IsClientUser)
@@ -207,7 +208,7 @@ class ProductByIdView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsManagerOrReadOnly]
 
     def get_queryset(self):
-        return Product.objects.visible()
+        return Product.objects.exclude(moderation_status='deleted')
 
     def get_serializer_class(self):
         return ProductFullSerializer
@@ -222,7 +223,7 @@ class ProductByIdView(RetrieveUpdateDestroyAPIView):
         user = self.request.user
         product = Product.objects.filter(
             pk=kwargs['pk']).exclude(
-                moderation_status=Guide.Statuses.DELETED).first()
+                moderation_status=Product.Statuses.DELETED).first()
         if product is None:
             return Response(PRODUCT_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
 
@@ -237,7 +238,7 @@ class ProductByIdView(RetrieveUpdateDestroyAPIView):
         if product is None:
             return Response(PRODUCT_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
 
-        product.moderation_status = Guide.Statuses.DELETED
+        product.moderation_status = Product.Statuses.DELETED
         product.save()
 
         # Изменить состояние заказов на "отменен гидом" для этого сервиса

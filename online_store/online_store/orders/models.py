@@ -27,6 +27,10 @@ class Order(models.Model):
     client = models.ForeignKey(
         get_user_model(), on_delete=models.CASCADE,
         related_name='orders', verbose_name=_('client'))
+    amount = MoneyField(
+        _('price'), max_digits=14, decimal_places=2,
+        default_currency='USD', validators=[MinMoneyValidator(0)],
+        null=True, blank=True)
     moderation_status = models.CharField(
         _("moderation status"), choices=Statuses.choices,
         max_length=30, default=Statuses.NEW, db_index=True)

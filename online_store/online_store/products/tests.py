@@ -61,7 +61,7 @@ class ProductTestCase(unittest.TestCase):
 
 class ApiProductsTestCase(ApiTestCase):
     """
-    Test case to test end-points of Mapster accounts API
+    Test case to test end-points of Mapster products API
     """
 
     def setUp(self):

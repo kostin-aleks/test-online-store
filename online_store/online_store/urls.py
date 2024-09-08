@@ -59,6 +59,7 @@ urlpatterns = [
     path('auth/', include('online_store.accounts.auth-urls')),
     path('accounts/', include('online_store.accounts.urls')),
     path('products/', include('online_store.products.urls')),
+    path('orders/', include('online_store.orders.urls')),
 
 ]
 

@@ -12,7 +12,6 @@ from online_store.products.models import Product, SubCategory
 PRODUCT_DATA = [
     {
         'name': 'Каска Salewa Pura S/M сірий 1823',
-        'slug': 'kaska-salewa-pura-sm-sirij-1823',
         'description': '''Шолом Salewa Pura Helmet є надійним та універсальним. Він гарантує необхідний захист під час скелелазіння та активного відпочинку. Добре регулюється та легко підлаштовується під індивідуальні особливості. Підійде як для жінок, так і для чоловіків. Є і дитячі варіації.''',
         'details': ['міцна і зручна внутрішня оболонка із пінополістиролу',
                     'регулюється та легко підлаштовується під індивідуальні особливості',
@@ -29,7 +28,6 @@ PRODUCT_DATA = [
     },
     {
         'name': 'Каска Singing Rock Plasma Work AQ Blue',
-        'slug': 'kaska-singing-rock-plasma-work-aq-blue',
         'description': '''Робоча каска Plasma Work бренду Singing Rock Singing Rock Plasma Work - легка та міцна каска для промальпу, будівельних та висотно-монтажних робіт. Вона легко регулюється для комфортної посадки на голові та компактно складається для перевезення.
         ''',
         'details': ['10 вентиляційних отворів',
@@ -48,7 +46,6 @@ PRODUCT_DATA = [
     },
     {
         'name': 'Карабін First Ascent Goliath 50 kN 2023',
-        'slug': 'karabin-first-ascent-goliath-50-kn-2023',
         'description': '''Карабін First Ascent Goliath 50 kN 2023''',
         'details': [],
         'features': {'Виробник': 'First Ascent'},
@@ -58,7 +55,6 @@ PRODUCT_DATA = [
     },
     {
         'name': 'Карабін Maillon Rapid 10,0 1 / 2RD IN CE D10мм дельта нержавейка 2014',
-        'slug': 'karabin-maillon-rapid-100-1-2rd-in-ce',
         'description': '''Карабін Maillon Rapid 10,0 1 / 2RD IN CE D10мм дельта нержавейка 2014''',
         'details': [],
         'features': {'Виробник': 'Rapid'},
@@ -68,7 +64,6 @@ PRODUCT_DATA = [
     },
     {
         'name': 'Затиск кроль Petzl Basic B18 AAA 2019',
-        'slug': 'zatisk-krol-petzl-basic-b18-aaa-2019',
         'description': '''Затиск кроль Petzl Basic B18 AAA 2019''',
         'details': [],
         'features': {'Виробник': 'Petzl'},
@@ -78,7 +73,6 @@ PRODUCT_DATA = [
     },
     {
         'name': 'Жумар правий Black Diamond INDEX Ascender Right',
-        'slug': 'zhumar-pravij-black-diamond-index-ascender-right',
         'description': '''Жумар Black Diamond Index Ascender - пристрій для підйому мотузкою, сконструйований для роботи на важких ділянках, у важких умовах протягом усього маршруту в будь-яку погоду. Новий курок затискача дозволяє легко пересувати його, що додає швидкості та маневреності. Агресивні зубці для надійного фіксування на зледенілій мотузці. Є можливість працювати з широким діапазоном мотузок, лівою чи правою (різні модифікації) рукою.''',
         'details': ['Робота з затискачем вказівним пальцем для швидкого пересування мотузкою',
                     'Ергономічна рукоятка',
@@ -95,7 +89,6 @@ PRODUCT_DATA = [
     },
     {
         'name': 'Намет Hannah Hawk 2 Treetop 2022',
-        'slug': 'namet-hannah-hawk-2-treetop-2022',
         'description': '''Намет Hannah Hawk 2 Treetop 2022''',
         'details': [],
         'features': {'Виробник': 'Hannah', 'Кількість тамбурів': 1, 'Колір': 'Зелений'},
@@ -118,7 +111,6 @@ PRODUCT_DATA = [
     },
     {
         'name': 'Спальник пуховий Turbat Kuk 500 Blue - синій - 185',
-        'slug': 'spalnik-puhovij-turbat-kuk-500-blue-sinij-185',
         'description': '''Нова серія спальних мішків від Turbat задовільнить найвимогливіших користувачів, які потребують максимального комфорту при мінімальному об'ємі та вазі. Легкий і надзвичайно практичний трисезонний спальник для використання у міжсезонний період. Хороші термоізоляційні властивості досягаються завдяки натуральному матеріалу наповнювача - гусячому пуху високого класу. Такий наповнювач перевершує усі синтетичні аналоги за показниками теплоізоляції на одиницю ваги. Добре компресується у зручний мішок. Компактна та практична форма, легкість у використанні є перевагами даної моделі.
 
 Призначення: гірський туризм, піший туризм, кемпінг, велотуризм, альпінізм.''',
@@ -150,7 +142,6 @@ PRODUCT_DATA = [
     },
     {
         'name': 'Байдарка Neris Alu-2 Standart 2022',
-        'slug': 'bajdarka-neris-alu-2-standart-2022',
         'description': '''''',
         'details': [],
         'features': {'Виробник': 'Neris'},
@@ -170,18 +161,17 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
 
         for item in PRODUCT_DATA:
-            print(f"SLUG: {item['slug']}")
-            product = Product.objects.filter(slug=item['slug']).first()
+            print(f"NAME: {item['name']}")
+            product = Product.objects.filter(name=item['name']).first()
             if product is None:
                 product = Product.objects.create(
-                    slug=item['slug'][:50],
                     name=item['name'],
                     description=item['description'],
                     details=item['details'],
                     features=item['features'],
                     technical_features=item['technical_features'],
                     price=Money(item['price'], 'UAH'),
-                    category=SubCategory.objects.get(slug=item['category']),
+                    subcategory=SubCategory.objects.get(slug=item['category']),
                     moderation_status='approved',
                 )
             else:
@@ -191,7 +181,7 @@ class Command(BaseCommand):
                 product.features = item['features']
                 product.technical_features = item['technical_features']
                 product.price = Money(item['price'], 'UAH')
-                product.category = SubCategory.objects.get(slug=item['category'])
+                product.subcategory = SubCategory.objects.get(slug=item['category'])
                 product.moderation_status = 'approved'
                 product.save()
 

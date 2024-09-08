@@ -15,7 +15,7 @@ class ProductFilters(filters.FilterSet):
 
     class Meta:
         model = Product
-        fields = ['price', 'category']
+        fields = ['price']
 
     @staticmethod
     def filter_min_price(queryset: QuerySet, _, value: float | int) -> QuerySet:

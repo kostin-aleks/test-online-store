@@ -1,7 +1,11 @@
-# from pprint import pprint
+from pprint import pprint
+from slugify import slugify
+
 from django.utils.translation import gettext as _
 
 from rest_framework import serializers
+
+from djmoney.money import Money
 
 from .models import Category, SubCategory, Product
 
@@ -22,36 +26,39 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ProductListItemSerializer(serializers.ModelSerializer):
-    category = serializers.SerializerMethodField()
+    subcategory = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = ['id', 'slug', 'name', 'price', 'category']
+        fields = ['id', 'uuid', 'name', 'price', 'subcategory']
 
     @staticmethod
-    def get_category(obj):
-        return obj.category.slug
+    def get_subcategory(obj):
+        return obj.subcategory.slug if obj.subcategory else None
 
 
-class CreateProductSerializer(serializers.ModelSerializer):
+class ProductFullSerializer(serializers.ModelSerializer):
+    subcategory = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = [
-            'slug', 'name', 'subtitle', 'description', 'details', 'features', 'price',
-            'category', 'technical_features', ]
+        fields = '__all__'
+
+    @staticmethod
+    def get_subcategory(obj):
+        return obj.subcategory.slug if obj.subcategory else None
 
 
 class CreateProductSerializer(serializers.ModelSerializer):
-    category = serializers.IntegerField(required=False)
+    subcategory = serializers.CharField(required=False)
     price = serializers.FloatField()
     price_currency = serializers.CharField()
 
     class Meta:
         model = Product
         fields = [
-            'category', 'name', 'subtitle', 'description', 'details',
-            'features', 'technical_features', 'price']
+            'subcategory', 'name', 'description', 'details',
+            'features', 'technical_features', 'price', 'price_currency']
 
     def create(self, validated_data):
 
@@ -67,14 +74,13 @@ class CreateProductSerializer(serializers.ModelSerializer):
         return instance
 
     def validate(self, attrs):
-
-        category_id = attrs.get('category')
-        if category_id:
+        subcategory_slug = attrs.get('subcategory')
+        if subcategory_slug:
             try:
-                category = SubCategory.objects.get(pk=category_id)
-                attrs['category'] = category
+                subcategory = SubCategory.objects.get(slug=subcategory_slug)
+                attrs['subcategory'] = subcategory
             except SubCategory.DoesNotExist as e:
-                raise serializers.ValidationError({'category': _('Category does not exist')})
+                raise serializers.ValidationError({'subcategory': _('Subcategory does not exist')})
         attrs['price'] = Money(attrs['price'], attrs['price_currency'])
 
         return attrs

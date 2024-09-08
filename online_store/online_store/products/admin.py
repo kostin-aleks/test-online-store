@@ -9,6 +9,16 @@ from django.utils.translation import gettext_lazy as _
 from .models import SubCategory, Category, Product
 
 
+@admin.action(description=_("Approve moderation"))
+def approve_moderation(modeladmin, request, queryset):
+    queryset.update(moderation_status=Product.Statuses.APPROVED)
+
+
+@admin.action(description=_("Reject moderation"))
+def reject_moderation(modeladmin, request, queryset):
+    queryset.update(moderation_status=Product.Statuses.CANCELLED)
+
+
 class ProductAdmin(admin.ModelAdmin):
     """
     An ProductAdmin object encapsulates an instance of the Product
@@ -16,9 +26,10 @@ class ProductAdmin(admin.ModelAdmin):
     verbose_name = _('Product')
     verbose_name_plural = _('Products')
     list_display = (
-        'id', 'slug', 'name', 'moderation_status')
-    search_fields = ('name', 'slug', 'subtitle')
-    list_filter = ['category']
+        'id', 'name', 'moderation_status')
+    search_fields = ('name', 'description')
+    list_filter = ['subcategory', 'moderation_status']
+    actions = [approve_moderation, reject_moderation]
 
 
 admin.site.register(Product, ProductAdmin)

@@ -8,12 +8,15 @@ import requests
 from time import time
 
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Min, Max
 from django.utils.translation import gettext as _
 #
-from rest_framework.decorators import api_view
+from rest_framework.decorators import parser_classes, api_view, permission_classes
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView, ListAPIView
+from rest_framework.generics import (
+    RetrieveUpdateAPIView, CreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView)
+from rest_framework.parsers import JSONParser
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
@@ -31,7 +34,8 @@ from online_store.general.permissions import (
 from .models import Category, Product
 from .filters import ProductFilters
 from .serializers import (
-    CategorySerializer, ProductListItemSerializer, CreateProductSerializer)
+    CategorySerializer, ProductListItemSerializer, CreateProductSerializer,
+    ProductFullSerializer)
 
 logger = getLogger(__name__)
 
@@ -69,7 +73,7 @@ class ProductView(APIView, LimitOffsetPagination):
         raise MethodNotAllowed(method=method)
 
     def get_queryset(self):
-        queryset = Product.objects.visible().select_related('category')
+        queryset = Product.objects.visible().select_related('subcategory')
 
         return queryset
 
@@ -83,7 +87,7 @@ class ProductView(APIView, LimitOffsetPagination):
                 if items == 'undefined':
                     items = []
                 else:
-                    items = [s.strip() for s in categories.split(',') if s]
+                    items = [s.strip() for s in items.split(',') if s]
             else:
                 items = []
             return items
@@ -123,10 +127,11 @@ class ProductView(APIView, LimitOffsetPagination):
         filtered_queryset = ProductFilters(filters_from_request, queryset=queryset).qs
         if categories:
             filtered_queryset = filtered_queryset.filter(
-                category__category__slug__in=categories)
+                subcategory__category__slug__in=categories)
+
         if subcategories:
             filtered_queryset = filtered_queryset.filter(
-                category__slug__in=subcategories)
+                subcategory__slug__in=subcategories)
 
         # order the filtered queryset if ordering param was provided
         non_default_ordering = False
@@ -191,3 +196,82 @@ class ProductView(APIView, LimitOffsetPagination):
         else:
             raise ValidationError(
                 _("Something went wrong"), status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProductByIdView(RetrieveUpdateDestroyAPIView):
+    """
+    get: Retrieve product by id
+    put: Update product by id (available only to manager)
+    delete: Delete product by id (available only to manager)
+    """
+    permission_classes = [IsManagerOrReadOnly]
+
+    def get_queryset(self):
+        return Product.objects.visible()
+
+    def get_serializer_class(self):
+        return ProductFullSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        user = self.request.user
+        context['user'] = user
+        return context
+
+    def get(self, request, *args, **kwargs):
+        user = self.request.user
+        product = Product.objects.filter(
+            pk=kwargs['pk']).exclude(
+                moderation_status=Guide.Statuses.DELETED).first()
+        if product is None:
+            return Response(PRODUCT_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
+
+        serializer_class = self.get_serializer_class()
+        context = self.get_serializer_context()
+        return Response(serializer_class(product, context=context).data)
+
+    def delete(self, request, *args, **kwargs):
+        product_id = kwargs.get('pk')
+
+        product = Product.objects.filter(pk=product_id).first()
+        if product is None:
+            return Response(PRODUCT_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
+
+        product.moderation_status = Guide.Statuses.DELETED
+        product.save()
+
+        # Изменить состояние заказов на "отменен гидом" для этого сервиса
+        # cancel_orders_by_product(product)
+
+        return Response("Success")
+
+    @parser_classes([JSONParser])
+    def put(self, request, pk, *args, **kwargs):
+        """Custom update method: update product"""
+        try:
+            product = self.get_queryset().get(id=pk)
+        except Product.DoesNotExist:
+            return Response(PRODUCT_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
+
+        request_data = dict(request.data)
+
+        context = self.get_serializer_context()
+
+        product_srl = CreateProductSerializer(
+            instance=product, data=request_data, partial=True, context=context)
+
+        if not product_srl.is_valid():
+            error_msg = _("Data is invalid, please check these fields:") + " "
+            error_msg += ", ".join([_(f"{key}") for key in product_srl.errors.keys()])
+
+            return Response(error_msg, status=status.HTTP_400_BAD_REQUEST)
+
+        product = None
+        with transaction.atomic():
+            product = product_srl.save()
+            context['product'] = product
+
+        if product:
+            return Response(
+                ProductFullSerializer(product, context=context).data,
+                status=status.HTTP_200_OK)

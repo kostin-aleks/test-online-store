@@ -80,14 +80,11 @@ class Product(models.Model):
         DELETED = ("deleted", _("Deleted"))
 
     uuid = models.UUIDField(_("uuid"), default=uuid.uuid4, editable=False)
-    slug = models.SlugField(
-        _("slug"), unique=True, null=True, blank=True, db_index=True)
-    category = models.ForeignKey(
+    subcategory = models.ForeignKey(
         SubCategory, on_delete=models.SET_NULL,
         null=True, blank=True,
-        related_name='products', verbose_name=_('category'))
+        related_name='products', verbose_name=_('subcategory'))
     name = models.CharField(_('name'), max_length=255)
-    subtitle = models.TextField(_('subtitle'), blank=True, null=True)
     description = models.TextField(_('description'), blank=True, null=True)
     details = models.JSONField(_('details'), blank=True, null=True)
     features = models.JSONField(_('features'), blank=True, null=True)

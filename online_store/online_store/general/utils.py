@@ -59,7 +59,6 @@ def atoi(variable, default=None):
         s = ''
         i = 0
         while i < len(variable) and variable[i].isdigit():
-            print(i, variable[i])
             s = s + variable[i]
             i += 1
         variable = s

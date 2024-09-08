@@ -5,6 +5,7 @@ Test case to test models related to accounts
 import json
 from faker import Faker
 from pprint import pprint
+import random
 import unittest
 
 from django.conf import settings
@@ -20,7 +21,7 @@ from online_store.general.test_utils import (
     create_test_client_user)
 
 
-class AccountTestCase(unittest.TestCase):
+class ProductTestCase(unittest.TestCase):
 
     def setUp(self):
         self.category = Category.objects.first()
@@ -56,7 +57,7 @@ class AccountTestCase(unittest.TestCase):
         self.assertTrue(products.count())
 
 
-class ApiAccountsTestCase(ApiTestCase):
+class ApiProductsTestCase(ApiTestCase):
     """
     Test case to test end-points of Mapster accounts API
     """
@@ -92,15 +93,66 @@ class ApiAccountsTestCase(ApiTestCase):
         end-point products
         GET
         """
-        params = "ordering=-price&min_price=1000"
+        params = "ordering=-price&min_price=1000&category=alpinism"
         response = self.client.get(reverse('products') + f"?{params}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = json.loads(response.content)
-        pprint(data)
+        # pprint(data)
         self.assertTrue(data['count'])
         results = data['results']
         self.assertTrue(results)
         result = results[0]
-        self.assertTrue(result['slug'])
+        self.assertTrue(result['uuid'])
         self.assertTrue(result['id'])
 
+    def test_0030_add_product(self):
+        """
+        end-point products
+        POST
+        """
+        SUBCATEGORY = ['kaski', 'karabiny', 'zazhimy']
+        NAME = {
+            'kaski': 'Каска',
+            'karabiny': 'Карабін',
+            'zazhimy': 'Затиск',
+        }
+        BRAND = ['Salewa', 'First Ascent', 'Petzl', 'Black Diamond']
+        COLOR = ['Сірий', 'Синій', 'Зелений']
+        YEAR = [2014, 2015, 2019, 2022, 2024]
+        DETAILS = ['Ергономічна рукоятка', 'Полегшена конструкція', 'компактна модель', 'Велика провушина для карабіна']
+
+        fake = Faker()
+
+        self.user_manager = get_test_user(role='manager')
+        self.user_token, self.refresh_token = self.get_jwt_token(role='manager')
+        self.set_headers()
+
+        subcategory = random.choice(SUBCATEGORY)
+        name = NAME[subcategory]
+        brand = random.choice(BRAND)
+        color = random.choice(COLOR)
+        year = random.choice(YEAR)
+        price = random.randint(200, 2000)
+        weight = random.randint(300, 2000) / 1000
+
+        data = {
+            'name': f'Test {name} {brand} {color} {year}',
+            'price': price,
+            'description': fake.paragraph(nb_sentences=5),
+            'price_currency': 'UAH',
+            'subcategory': subcategory,
+            'details': [random.choice(DETAILS), random.choice(DETAILS)],
+            'features': {
+                'Виробник': brand,
+                'Колір': color},
+            'technical_features': {
+                'Вага': f'{weight:.1f} кг',
+                'Колір': color},
+        }
+        response = self.client.post(reverse('products'), data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = json.loads(response.content)
+        # pprint(data)
+        self.assertTrue(data['uuid'])
+        self.assertTrue(data['price'])
+        self.assertEqual(data['subcategory'], subcategory)

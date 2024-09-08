@@ -3,7 +3,9 @@ from django.utils.translation import gettext as _
 
 from rest_framework import serializers
 
-from .models import UserProfile
+from djmoney.money import Money
+
+from .models import UserProfile, TopUpAccount
 
 
 class SignInSerializer(serializers.Serializer):
@@ -73,3 +75,36 @@ class SignUpSerializer(serializers.Serializer):
         user = authenticate(username=username, password=attrs['password'])
 
         return attrs
+
+
+class TopUpAccountSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    amount = serializers.FloatField()
+    amount_currency = serializers.CharField()
+
+    def validate(self, attrs):
+        username = attrs['username']
+        # check if user with given username exists
+
+        if not get_user_model().objects.filter(username=username).exists():
+            raise ValidationError(_("User not found"))
+
+        return attrs
+
+    def create(self, validated_data):
+        user = get_user_model().objects.filter(
+            username=validated_data['username']).first()
+
+        instance = TopUpAccount.objects.create(
+            user=user,
+            amount=Money(validated_data['amount'], validated_data['amount_currency'])
+        )
+
+        return instance
+
+
+class AccountItemSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TopUpAccount
+        fields = '__all__'

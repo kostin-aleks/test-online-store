@@ -1,7 +1,9 @@
 """
-Test case to test models related to accounts
+Test case to test models related to products
 """
 
+from datetime import date
+from decimal import Decimal
 import json
 from faker import Faker
 from pprint import pprint
@@ -202,3 +204,29 @@ class ApiProductsTestCase(ApiTestCase):
         item = Product.objects.filter(id=product_id).first()
         self.assertTrue(item)
         self.assertTrue(item.moderation_status == 'deleted')
+
+    def test_0050_invoice(self):
+        """end-point POST invoice"""
+        self.user_manager = get_test_user(role='manager')
+        self.user_token, self.refresh_token = self.get_jwt_token(role='manager')
+        self.set_headers()
+
+        items = []
+        for product in Product.objects.visible():
+            items.append({
+                'product': product.id,
+                'amount': random.randint(10, 50),
+                'price': product.price.amount * Decimal(0.8),
+                'price_currency': 'UAH'
+            })
+        data = {
+            "date": date.today().strftime('%Y-%m-%d'),
+            "items": items
+        }
+
+        response = self.client.post(reverse('invoice'), data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = json.loads(response.content)
+        # pprint(data)
+        self.assertTrue(data['uuid'])
+        self.assertTrue(len(data['items']))

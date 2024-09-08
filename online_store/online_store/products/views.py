@@ -36,7 +36,9 @@ from .models import Category, Product
 from .filters import ProductFilters
 from .serializers import (
     CategorySerializer, ProductListItemSerializer, CreateProductSerializer,
-    ProductFullSerializer)
+    ProductFullSerializer, InvoiceSerializer, InvoiceListItemSerializer,
+    CreateInvoiceSerializer
+)
 
 logger = getLogger(__name__)
 
@@ -276,3 +278,61 @@ class ProductByIdView(RetrieveUpdateDestroyAPIView):
             return Response(
                 ProductFullSerializer(product, context=context).data,
                 status=status.HTTP_200_OK)
+
+
+class InvoiceView(APIView, LimitOffsetPagination):
+    permission_classes = [IsManager]
+    serializer_type_class = {
+        'get': InvoiceListItemSerializer,
+        'post': CreateInvoiceSerializer,
+    }
+
+    def get_serializer_class(self):
+        method = self.request.method.lower()
+        serializer = self.serializer_type_class.get(method)
+        if serializer:
+            return serializer
+        raise MethodNotAllowed(method=method)
+
+    def get_queryset(self):
+        queryset = Invoice.objects.all().order_by('-id')
+
+        return queryset
+
+    def get(self, request, *args, **kwargs):
+        """
+        GET list of incomes with filtration
+        """
+        user = request.user
+
+        data = InvoiceListItemSerializer(
+            filtered_queryset, context=context, many=True).data
+
+        response = self.get_paginated_response(data)
+
+        return response
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+
+        request_data = dict(request.data)
+
+        serializer = CreateInvoiceSerializer(data=request_data)
+        if not serializer.is_valid():
+            error_msg = _("Data is invalid, please check these fields:") + " "
+            error_msg += ", ".join([_(f"{key}") for key in serializer.errors.keys()])
+            serializer.validate(request_data)
+            # print(error_msg)
+            return Response(error_msg, status=status.HTTP_400_BAD_REQUEST)
+
+        invoice = None
+        with transaction.atomic():
+            invoice = serializer.save()
+
+        if invoice:
+            return Response(
+                InvoiceSerializer(invoice).data,
+                status=status.HTTP_201_CREATED)
+        else:
+            raise ValidationError(
+                _("Something went wrong"), status=status.HTTP_400_BAD_REQUEST)

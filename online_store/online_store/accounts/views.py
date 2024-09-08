@@ -22,9 +22,12 @@ from rest_framework import status
 
 from drf_spectacular.utils import extend_schema
 
+from online_store.general.permissions import IsManager
 from online_store.general.utils import get_gender
 from .models import UserProfile
-from .serializers import SignInSerializer, UserProfileSerializer, SignUpSerializer
+from .serializers import (
+    SignInSerializer, UserProfileSerializer, SignUpSerializer,
+    TopUpAccountSerializer, AccountItemSerializer)
 
 logger = getLogger(__name__)
 
@@ -109,3 +112,22 @@ class ProfileView(RetrieveUpdateAPIView):
     def get_profile_serializer():
         return UserProfileSerializer
 
+
+class TopUpAccountView(CreateAPIView):
+    permission_classes = [IsManager]
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+
+        serializer = self.get_serializer(data=data)
+        if serializer.is_valid():
+            item = serializer.save()
+
+            return Response(
+                AccountItemSerializer(item).data,
+                status=status.HTTP_201_CREATED)
+        else:
+            raise ValidationError(serializer.errors)
+
+    def get_serializer_class(self):
+        return TopUpAccountSerializer

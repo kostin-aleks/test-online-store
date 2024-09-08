@@ -123,3 +123,24 @@ class ApiAccountsTestCase(ApiTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(data['user'])
         self.assertTrue(data['user']['username'])
+
+    def test_0030_topup(self):
+        """end-point POST top-up-account"""
+        self.user_manager = get_test_user(role='manager')
+        self.user_token, self.refresh_token = self.get_jwt_token(role='manager')
+        self.set_headers()
+
+        username = self.user_client.username
+
+        data = {
+            "username": username,
+            "amount": 1000,
+            'amount_currency': 'UAH',
+        }
+
+        response = self.client.post(reverse('top-up-account'), data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = json.loads(response.content)
+        # pprint(data)
+        self.assertTrue(data['user'])
+        self.assertTrue(data['amount'])

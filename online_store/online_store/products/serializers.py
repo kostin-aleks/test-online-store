@@ -7,7 +7,7 @@ from rest_framework import serializers
 
 from djmoney.money import Money
 
-from .models import Category, SubCategory, Product
+from .models import Category, SubCategory, Product, Invoice, InvoiceItem
 
 
 class SubCategorySerializer(serializers.ModelSerializer):
@@ -31,6 +31,18 @@ class ProductListItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ['id', 'uuid', 'name', 'price', 'subcategory']
+
+    @staticmethod
+    def get_subcategory(obj):
+        return obj.subcategory.slug if obj.subcategory else None
+
+
+class ProductShortSerializer(serializers.ModelSerializer):
+    subcategory = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'subcategory']
 
     @staticmethod
     def get_subcategory(obj):
@@ -85,3 +97,65 @@ class CreateProductSerializer(serializers.ModelSerializer):
 
         return attrs
 
+
+class InvoiceItemSerializer(serializers.Serializer):
+    product = serializers.IntegerField()
+    amount = serializers.IntegerField()
+    price = serializers.FloatField(required=False)
+    price_currency = serializers.CharField(required=False)
+
+
+class CreateInvoiceSerializer(serializers.Serializer):
+    date = serializers.DateField(input_formats=['%d-%m-%Y', 'iso-8601'])
+    items = InvoiceItemSerializer(many=True)
+
+    class Meta:
+        fields = ['date', 'items']
+
+    def create(self, validated_data):
+
+        instance = Invoice.objects.create(
+            date=validated_data['date']
+        )
+        for item in validated_data['items']:
+
+            InvoiceItem.objects.create(
+                invoice=instance,
+                product=Product.objects.get(pk=item['product']),
+                amount=item['amount'],
+                price=Money(item['price'], item['price_currency'])
+            )
+
+        return instance
+
+    def validate(self, attrs):
+        for item in attrs['items']:
+            product = Product.objects.filter(pk=item['product']).first()
+            if product is None:
+                raise serializers.ValidationError(
+                    {'product': f"Product {item['product']} does not exist"})
+
+        return attrs
+
+
+class InvoiceItemOutSerializer(serializers.ModelSerializer):
+    product = ProductShortSerializer()
+
+    class Meta:
+        model = InvoiceItem
+        fields = ['id', 'product', 'amount', 'price']
+
+
+class InvoiceSerializer(serializers.ModelSerializer):
+    items = InvoiceItemOutSerializer(many=True)
+
+    class Meta:
+        model = Invoice
+        fields = ['id', 'uuid', 'date', 'items']
+
+
+class InvoiceListItemSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Invoice
+        fields = '__all__'

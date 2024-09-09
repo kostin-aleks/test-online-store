@@ -222,6 +222,7 @@ class ProductByIdView(RetrieveUpdateDestroyAPIView):
         return context
 
     def get(self, request, *args, **kwargs):
+
         user = self.request.user
         product = Product.objects.filter(
             pk=kwargs['pk']).exclude(
@@ -234,6 +235,7 @@ class ProductByIdView(RetrieveUpdateDestroyAPIView):
         return Response(serializer_class(product, context=context).data)
 
     def delete(self, request, *args, **kwargs):
+        from online_store.orders.service import cancel_orders_by_product
         product_id = kwargs.get('pk')
 
         product = Product.objects.filter(pk=product_id).first()
@@ -243,8 +245,7 @@ class ProductByIdView(RetrieveUpdateDestroyAPIView):
         product.moderation_status = Product.Statuses.DELETED
         product.save()
 
-        # Изменить состояние заказов на "отменен гидом" для этого сервиса
-        # cancel_orders_by_product(product)
+        cancel_orders_by_product(product)
 
         return Response("Success")
 

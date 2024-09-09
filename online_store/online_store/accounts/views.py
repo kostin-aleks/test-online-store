@@ -27,7 +27,7 @@ from online_store.general.utils import get_gender
 from .models import UserProfile
 from .serializers import (
     SignInSerializer, UserProfileSerializer, SignUpSerializer,
-    TopUpAccountSerializer, AccountItemSerializer)
+    TopUpAccountSerializer, TopUpAccountItemSerializer)
 
 logger = getLogger(__name__)
 
@@ -124,7 +124,7 @@ class TopUpAccountView(CreateAPIView):
             item = serializer.save()
 
             return Response(
-                AccountItemSerializer(item).data,
+                TopUpAccountItemSerializer(item).data,
                 status=status.HTTP_201_CREATED)
         else:
             raise ValidationError(serializer.errors)

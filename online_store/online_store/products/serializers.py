@@ -27,10 +27,11 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class ProductListItemSerializer(serializers.ModelSerializer):
     subcategory = serializers.SerializerMethodField()
+    available_quantity = serializers.IntegerField()
 
     class Meta:
         model = Product
-        fields = ['id', 'uuid', 'name', 'price', 'subcategory']
+        fields = ['id', 'uuid', 'name', 'price', 'subcategory', 'available_quantity']
 
     @staticmethod
     def get_subcategory(obj):
@@ -51,6 +52,7 @@ class ProductShortSerializer(serializers.ModelSerializer):
 
 class ProductFullSerializer(serializers.ModelSerializer):
     subcategory = serializers.SerializerMethodField()
+    available_quantity = serializers.IntegerField()
 
     class Meta:
         model = Product

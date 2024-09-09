@@ -2,6 +2,7 @@ from decimal import Decimal
 from pprint import pprint
 from slugify import slugify
 
+from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from rest_framework import serializers
@@ -10,7 +11,7 @@ from djmoney.money import Money
 
 from online_store.products.serializers import ProductShortSerializer
 from online_store.products.models import Product
-from .models import Order, OrderItem
+from .models import Order, OrderItem, Payment
 
 
 class OrderItemSerializer(serializers.Serializer):
@@ -79,4 +80,63 @@ class OrderListItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
+        fields = '__all__'
+
+
+class OrderFullSerializer(serializers.ModelSerializer):
+    items = OrderItemOutSerializer(many=True)
+
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+
+class PaymentListItemSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Payment
+        fields = '__all__'
+
+
+class CreatePaymentSerializer(serializers.Serializer):
+    order = serializers.IntegerField()
+
+    class Meta:
+        fields = ['order']
+
+    def create(self, validated_data):
+        order = Order.objects.filter(pk=validated_data['order']).first()
+
+        payment = Payment.objects.create(
+            client=self.context['user'],
+            order=order,
+            amount=order.amount
+        )
+        order.moderation_status = Order.Statuses.PAID
+        order.paid_at = timezone.now()
+        order.save()
+
+        return payment
+
+    def validate(self, attrs):
+        user = self.context['user']
+
+        order = Order.objects.filter(pk=attrs['order']).first()
+        if order is None:
+            raise serializers.ValidationError(
+                {'order': f"Order {item['order']} does not exist"})
+        if order.amount > user.userprofile.balance_funds:
+            raise serializers.ValidationError(
+                {'client': "The client has insufficient funds to pay for the order."})
+        if order.moderation_status != Order.Statuses.NEW:
+            raise serializers.ValidationError(
+                {'order': "You can only pay for a new order"})
+
+        return attrs
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Payment
         fields = '__all__'

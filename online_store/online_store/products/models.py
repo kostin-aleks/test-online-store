@@ -4,6 +4,7 @@ import uuid
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
+from django.db.models import Sum
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -110,6 +111,18 @@ class Product(models.Model):
 
     def __str__(self) -> str:
         return f'{self.name}'
+
+    @property
+    def available_quantity(self):
+        """
+        available quantity for this product
+        """
+        from online_store.orders.models import OrderItem
+
+        purchased = InvoiceItem.objects.filter(product=self).aggregate(Sum('amount'))
+        sold = OrderItem.objects.filter(product=self).aggregate(Sum('count'))
+        balance = (purchased['amount__sum'] or 0) - (sold['count__sum'] or 0)
+        return balance if balance >= 0 else 0
 
 
 class Invoice(models.Model):

@@ -193,7 +193,7 @@ class ApiProductsTestCase(ApiTestCase):
         response = self.client.get(reverse('get_product_by_id', args=[product_id]))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)
-        # pprint(content)
+        # pprint(response_data)
         self.assertTrue(response_data['uuid'])
         self.assertTrue(response_data['price'])
         self.assertEqual(response_data['subcategory'], data['subcategory'])

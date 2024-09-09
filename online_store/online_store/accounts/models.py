@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import ValidationError
@@ -6,6 +7,7 @@ from rest_framework.exceptions import ValidationError
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
+from django.db.models import Sum
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -54,9 +56,9 @@ class UserProfile(models.Model):
     @classmethod
     def users_with_perm(cls, perm_name):
         return get_user_model().objects.filter(
-            models.Q(is_superuser=True) |
-            models.Q(user_permissions__codename=perm_name) |
-            models.Q(groups__permissions__codename=perm_name)).distinct()
+            models.Q(is_superuser=True)
+            | models.Q(user_permissions__codename=perm_name)
+            | models.Q(groups__permissions__codename=perm_name)).distinct()
 
     def set_manager_permission(self):
         """
@@ -103,6 +105,18 @@ class UserProfile(models.Model):
             'refresh': str(refresh),
             'access': str(refresh.access_token),
         }
+
+    @property
+    def balance_funds(self):
+        """
+        balance of funds
+        """
+        from online_store.orders.models import Payment
+
+        addition = TopUpAccount.objects.filter(user=self.user).aggregate(Sum('amount'))
+        paid = Payment.objects.filter(client=self.user).aggregate(Sum('amount'))
+        balance = Decimal(addition['amount__sum'] or 0) - Decimal(paid['amount__sum'] or 0)
+        return Money(balance, 'UAH')
 
 
 class TopUpAccount(models.Model):

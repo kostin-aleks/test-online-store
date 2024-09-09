@@ -36,15 +36,27 @@ class SignInSerializer(serializers.Serializer):
 
 
 class UserOutSerializer(serializers.ModelSerializer):
+    balance_funds = serializers.SerializerMethodField()
 
     class Meta:
         model = get_user_model()
-        fields = ['id', 'username', 'first_name', 'last_name', 'email']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'balance_funds']
+
+    @staticmethod
+    def get_balance_funds(obj):
+        if obj.userprofile is not None:
+            balance = obj.userprofile.balance_funds
+            if balance is not None:
+                return {
+                    'amount': balance.amount,
+                    'amount_currency': balance.currency.code}
+            return None
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
     user = UserOutSerializer()
     gender = serializers.SerializerMethodField()
+    balance_funds = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -54,6 +66,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def get_gender(obj):
         if obj.gender is not None:
             return 'F' if obj.gender == 1 else 'M' if obj.gender == 0 else None
+
+    @staticmethod
+    def get_balance_funds(obj):
+        balance = obj.balance_funds
+        if balance is not None:
+            return {
+                'amount': balance.amount,
+                'amount_currency': balance.currency.code}
+        return None
 
 
 class SignUpSerializer(serializers.Serializer):
@@ -103,7 +124,7 @@ class TopUpAccountSerializer(serializers.Serializer):
         return instance
 
 
-class AccountItemSerializer(serializers.ModelSerializer):
+class TopUpAccountItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TopUpAccount

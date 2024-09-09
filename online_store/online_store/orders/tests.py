@@ -18,7 +18,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from online_store.products.models import Product
-from .models import Order
+from .models import Order, Payment
 from online_store.general.test_utils import (
     get_test_user, ApiTestCase, create_test_manager_user,
     create_test_client_user)
@@ -53,6 +53,14 @@ class ApiOrdersTestCase(ApiTestCase):
 
         return {'items': data, 'price_currency': 'UAH'}
 
+    def payment_data(self):
+        order = Order.objects.filter(
+            client=self.user_client, moderation_status='new').first()
+
+        data = {'order': order.id}
+
+        return data
+
     def test_0020_orders(self):
         """
         end-point orders
@@ -86,3 +94,56 @@ class ApiOrdersTestCase(ApiTestCase):
         self.assertTrue(response_data['uuid'])
         self.assertTrue(response_data['id'])
         self.assertTrue('items' in response_data)
+
+    def test_0040_order_crud(self):
+        """
+        end-points for
+        POST, DELETE, GET
+        """
+        self.user_manager = get_test_user(role='manager')
+        self.user_token, self.refresh_token = self.get_jwt_token(role='manager')
+        self.set_headers()
+
+        data = self.order_data()
+
+        response = self.client.post(
+            reverse('orders'), data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response_data = json.loads(response.content)
+        # pprint(response_data)
+
+        self.assertTrue(response_data['uuid'])
+        self.assertTrue(response_data['id'])
+        self.assertTrue('items' in response_data)
+
+        order_id = response_data['id']
+
+        response = self.client.get(reverse('get_order_by_id', args=[order_id]))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = json.loads(response.content)
+        # pprint(response_data)
+        self.assertTrue(response_data['uuid'])
+        self.assertTrue(response_data['id'])
+        self.assertTrue('items' in response_data)
+
+        response = self.client.delete(
+            reverse('get_order_by_id', args=[order_id]), {})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        item = Order.objects.filter(id=order_id).first()
+        self.assertTrue(item)
+        self.assertTrue(item.moderation_status == 'rejected')
+
+    def test_0050_pay_order(self):
+        """
+        end-point payments
+        POST
+        """
+        data = self.payment_data()
+        response = self.client.post(reverse('payments'), data, format='json')
+
+        response_data = json.loads(response.content)
+        # pprint(response_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(response_data['uuid'])
+        self.assertTrue(response_data['id'])
+        self.assertTrue(response_data['amount'])

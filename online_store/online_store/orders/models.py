@@ -22,6 +22,7 @@ class Order(models.Model):
         NEW = ("new", _("New"))
         PAID = ("paid", _("Paid"))
         REJECTED = ("rejected", _("Rejected"))
+        CANCELLED_BY_MANAGER = ("cancelled_by_manager", _("Cancelled by manager"))
 
     uuid = models.UUIDField(_("uuid"), default=uuid.uuid4, editable=False)
     client = models.ForeignKey(
@@ -37,6 +38,7 @@ class Order(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = _("Order")
@@ -71,3 +73,27 @@ class OrderItem(models.Model):
         db_table = 'orders_order_item'
 
 
+class Payment(models.Model):
+
+    uuid = models.UUIDField(_("uuid"), default=uuid.uuid4, editable=False)
+    client = models.ForeignKey(
+        get_user_model(), on_delete=models.CASCADE,
+        related_name='payments', verbose_name=_('client'))
+    amount = MoneyField(
+        _('price'), max_digits=14, decimal_places=2,
+        default_currency='USD', validators=[MinMoneyValidator(0)],
+        null=True, blank=True)
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE,
+        related_name='payments', verbose_name=_('order'))
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Payment")
+        verbose_name_plural = _("Payments")
+        db_table = 'orders_payment'
+
+    def __str__(self) -> str:
+        return f'{self.uuid}-{self.client.username}'

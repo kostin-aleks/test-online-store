@@ -10,5 +10,8 @@ PASSWORDS_DO_NOT_MATCH = _("Passwords do not match")
 
 
 # Products
-PRODUCT_NOT_FOUND = _("Guide not found")
+PRODUCT_NOT_FOUND = _("Product not found")
 ACCESS_DENIED = _("Access denied. The user is not the manager")
+
+# Orders
+ORDER_NOT_FOUND = _("Order not found")

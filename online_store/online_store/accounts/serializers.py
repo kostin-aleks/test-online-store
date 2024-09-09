@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate, get_user_model
 from django.utils.translation import gettext as _
 
 from rest_framework import serializers
+from rest_framework import exceptions
 
 from djmoney.money import Money
 
@@ -20,7 +21,7 @@ class SignInSerializer(serializers.Serializer):
         # check if user with given username exists
 
         if not get_user_model().objects.filter(username=username).exists():
-            raise ValidationError(_("User with that name does not exist"))
+            raise exceptions.ValidationError(_("User with that name does not exist"))
 
         user = authenticate(username=username, password=attrs['password'])
 
@@ -91,7 +92,8 @@ class SignUpSerializer(serializers.Serializer):
         # check if user with given username exists
 
         if get_user_model().objects.filter(username=username).exists():
-            raise ValidationError(_("User name is already used by another user"))
+            raise exceptions.ValidationError(
+                _("User name is already used by another user"))
 
         user = authenticate(username=username, password=attrs['password'])
 
@@ -108,7 +110,7 @@ class TopUpAccountSerializer(serializers.Serializer):
         # check if user with given username exists
 
         if not get_user_model().objects.filter(username=username).exists():
-            raise ValidationError(_("User not found"))
+            raise exceptions.ValidationError(_("User not found"))
 
         return attrs
 

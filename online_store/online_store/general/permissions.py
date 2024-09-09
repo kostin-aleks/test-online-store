@@ -1,5 +1,5 @@
 from rest_framework.permissions import SAFE_METHODS, BasePermission
-from rest_framework.exceptions import NotAuthenticated, PermissionDenied, NotFound
+from rest_framework.exceptions import NotAuthenticated, PermissionDenied
 
 
 class IsSuperUser(BasePermission):

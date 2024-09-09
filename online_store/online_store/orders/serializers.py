@@ -1,9 +1,8 @@
 from decimal import Decimal
-from pprint import pprint
-from slugify import slugify
+# from pprint import pprint
 
 from django.utils import timezone
-from django.utils.translation import gettext as _
+# from django.utils.translation import gettext as _
 
 from rest_framework import serializers
 
@@ -124,7 +123,7 @@ class CreatePaymentSerializer(serializers.Serializer):
         order = Order.objects.filter(pk=attrs['order']).first()
         if order is None:
             raise serializers.ValidationError(
-                {'order': f"Order {item['order']} does not exist"})
+                {'order': f"Order {order.id} does not exist"})
         if order.amount > user.userprofile.balance_funds:
             raise serializers.ValidationError(
                 {'client': "The client has insufficient funds to pay for the order."})

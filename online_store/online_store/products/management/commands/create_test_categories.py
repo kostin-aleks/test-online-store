@@ -3,7 +3,6 @@ Manage command to create test categories
 """
 
 from django.core.management.base import BaseCommand
-from django.conf import settings
 
 from online_store.products.models import Category, SubCategory
 
@@ -100,5 +99,3 @@ class Command(BaseCommand):
                 category.name = item['name']
                 category.description = item['description']
                 category.save()
-
-

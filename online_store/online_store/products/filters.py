@@ -1,10 +1,6 @@
-from datetime import timedelta
-
 from django_filters import rest_framework as filters
 
-from django.db.models import Q, F
 from django.db.models.query import QuerySet
-from django.utils.timezone import now
 
 from .models import Product
 

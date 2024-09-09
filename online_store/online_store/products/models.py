@@ -1,15 +1,11 @@
 import logging
 import uuid
 
-from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Permission
 from django.db.models import Sum
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from djmoney.models.fields import MoneyField
-from djmoney.money import Money
 from djmoney.models.validators import MinMoneyValidator
 
 logger = logging.getLogger(__name__)
@@ -161,4 +157,3 @@ class InvoiceItem(models.Model):
         verbose_name = _("Invoice Item")
         verbose_name_plural = _("Invoice Items")
         db_table = 'products_invoice_item'
-

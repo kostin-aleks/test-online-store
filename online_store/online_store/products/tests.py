@@ -6,21 +6,17 @@ from datetime import date
 from decimal import Decimal
 import json
 from faker import Faker
-from pprint import pprint
+# from pprint import pprint
 import random
 import unittest
 
-from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from .models import Category, SubCategory, Product
-from online_store.general.test_utils import (
-    get_test_user, ApiTestCase, create_test_manager_user,
-    create_test_client_user)
+from online_store.general.test_utils import (get_test_user, ApiTestCase)
 
 
 class ProductTestCase(unittest.TestCase):
@@ -84,7 +80,9 @@ class ApiProductsTestCase(ApiTestCase):
         BRAND = ['Salewa', 'First Ascent', 'Petzl', 'Black Diamond']
         COLOR = ['Сірий', 'Синій', 'Зелений']
         YEAR = [2014, 2015, 2019, 2022, 2024]
-        DETAILS = ['Ергономічна рукоятка', 'Полегшена конструкція', 'компактна модель', 'Велика провушина для карабіна']
+        DETAILS = [
+            'Ергономічна рукоятка', 'Полегшена конструкція', 'компактна модель',
+            'Велика провушина для карабіна']
 
         fake = Faker()
 

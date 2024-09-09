@@ -1,20 +1,15 @@
-import json
-import jwt
+"""
+accounts views
+"""
+
 from logging import getLogger
-from pprint import pprint
-import requests
-from time import time
+# from pprint import pprint
 
 from django.contrib.auth import get_user_model
-from django.conf import settings
-from django.utils.translation import gettext as _
-#
-from rest_framework.decorators import api_view
+
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView, ListAPIView
-from rest_framework.parsers import JSONParser, MultiPartParser
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.request import Request
+from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from rest_framework.views import APIView
@@ -33,6 +28,9 @@ logger = getLogger(__name__)
 
 
 class SignInView(APIView):
+    """
+    sign in user
+    """
     permission_classes = [AllowAny]
 
     @extend_schema(
@@ -51,18 +49,22 @@ class SignInView(APIView):
                 'token': user.userprofile.create_token()})
 
     def get_serializer_class(self):
+        """get serializer class"""
         return UserProfileSerializer
 
 
 class SignUpView(CreateAPIView):
+    """
+    sign up user
+    """
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
+        """ sign up new user """
         data = request.data
 
         serializer = self.get_serializer(data=data)
         if serializer.is_valid():
-            #user = serializer.save()
             serdata = serializer.data
             user = get_user_model().objects.create_user(
                 email=serdata['email'],
@@ -84,13 +86,18 @@ class SignUpView(CreateAPIView):
             raise ValidationError(serializer.errors)
 
     def get_serializer_class(self):
+        """get serializer class"""
         return SignUpSerializer
 
 
 class ProfileView(RetrieveUpdateAPIView):
+    """
+    update user profile
+    """
     serializer_type_class = UserProfileSerializer
 
     def put(self, request, *args, **kwargs):
+        """ update user profile """
         user = request.user
         srl_class = self.get_profile_serializer()
 
@@ -103,20 +110,27 @@ class ProfileView(RetrieveUpdateAPIView):
             return Response(self.get_serializer_class()(user_profile).data)
 
     def get_object(self):
+        """get object"""
         return self.request.user.userprofile
 
     def get_serializer_class(self):
+        """get serializer class"""
         return self.serializer_type_class
 
     @staticmethod
     def get_profile_serializer():
+        """get profile serializer"""
         return UserProfileSerializer
 
 
 class TopUpAccountView(CreateAPIView):
+    """
+    replenish client balance
+    """
     permission_classes = [IsManager]
 
     def post(self, request, *args, **kwargs):
+        """ replenish client balance """
         data = request.data
 
         serializer = self.get_serializer(data=data)
@@ -130,4 +144,5 @@ class TopUpAccountView(CreateAPIView):
             raise ValidationError(serializer.errors)
 
     def get_serializer_class(self):
+        """get profile serializer"""
         return TopUpAccountSerializer

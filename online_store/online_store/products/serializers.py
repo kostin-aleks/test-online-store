@@ -1,6 +1,4 @@
-from pprint import pprint
-from slugify import slugify
-
+# from pprint import pprint
 from django.utils.translation import gettext as _
 
 from rest_framework import serializers
@@ -93,7 +91,7 @@ class CreateProductSerializer(serializers.ModelSerializer):
             try:
                 subcategory = SubCategory.objects.get(slug=subcategory_slug)
                 attrs['subcategory'] = subcategory
-            except SubCategory.DoesNotExist as e:
+            except SubCategory.DoesNotExist:
                 raise serializers.ValidationError({'subcategory': _('Subcategory does not exist')})
         attrs['price'] = Money(attrs['price'], attrs['price_currency'])
 

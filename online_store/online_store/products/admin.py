@@ -3,7 +3,6 @@ There are Admin Classes to present in admin interface objects related to product
 """
 
 from django.contrib import admin
-from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 
 from .models import SubCategory, Category, Product

@@ -2,11 +2,10 @@ import logging
 from decimal import Decimal
 
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.exceptions import ValidationError
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Sum
 from django.db import models
 from django.db.models.signals import post_save
@@ -137,5 +136,3 @@ class TopUpAccount(models.Model):
         verbose_name = _("Replenish Account")
         verbose_name_plural = _("Replenish Accounts")
         db_table = 'accounts_topup_account'
-
-

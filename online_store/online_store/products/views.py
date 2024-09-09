@@ -1,38 +1,29 @@
-import json
-import jwt
 from logging import getLogger
-from decimal import Decimal
-from pprint import pprint
+# from pprint import pprint
 import math
-import requests
-from time import time
 
-from django.conf import settings
 from django.db import transaction
 from django.db.models import Min, Max
 from django.utils.translation import gettext as _
 #
-from rest_framework.decorators import parser_classes, api_view, permission_classes
-from rest_framework.exceptions import ValidationError
+from rest_framework.decorators import parser_classes
+from rest_framework.exceptions import ValidationError, MethodNotAllowed
 from rest_framework.generics import (
-    RetrieveUpdateAPIView, CreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView)
+    ListAPIView, RetrieveUpdateDestroyAPIView)
 from rest_framework.parsers import JSONParser
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.request import Request
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from rest_framework.views import APIView
 from rest_framework import status
 
-from drf_spectacular.utils import extend_schema
 from djmoney.money import Money
 
 from online_store.general.error_messages import PRODUCT_NOT_FOUND
-from online_store.general.utils import get_gender, atoi
 from online_store.general.permissions import (
-    IsManager, IsManagerOrReadOnly, IsClientUser)
-from .models import Category, Product
+    IsManager, IsManagerOrReadOnly)
+from .models import Category, Product, Invoice
 from .filters import ProductFilters
 from .serializers import (
     CategorySerializer, ProductListItemSerializer, CreateProductSerializer,
@@ -124,9 +115,6 @@ class ProductView(APIView, LimitOffsetPagination):
             max_price = math.ceil(max_price)
 
         # filter queryset again, but with price filters
-        filter_min_price = Decimal(atoi(filters_from_request.get('min_price'), 0))
-        filter_max_price = Decimal(atoi(filters_from_request.get('max_price'), 1000000))
-
         filtered_queryset = ProductFilters(filters_from_request, queryset=queryset).qs
         if categories:
             filtered_queryset = filtered_queryset.filter(
@@ -145,7 +133,7 @@ class ProductView(APIView, LimitOffsetPagination):
         if order_by:
             try:
                 filtered_queryset = filtered_queryset.order_by(order_by)
-            except Exception as e:
+            except Exception:
                 non_default_ordering = True
 
         filtered_queryset = filtered_queryset.distinct()
@@ -178,8 +166,6 @@ class ProductView(APIView, LimitOffsetPagination):
         return response
 
     def post(self, request, *args, **kwargs):
-        user = request.user
-
         request_data = dict(request.data)
 
         serializer = CreateProductSerializer(data=request_data)
@@ -223,7 +209,6 @@ class ProductByIdView(RetrieveUpdateDestroyAPIView):
 
     def get(self, request, *args, **kwargs):
 
-        user = self.request.user
         product = Product.objects.filter(
             pk=kwargs['pk']).exclude(
                 moderation_status=Product.Statuses.DELETED).first()
@@ -304,18 +289,15 @@ class InvoiceView(APIView, LimitOffsetPagination):
         """
         GET list of incomes with filtration
         """
-        user = request.user
-
+        context = {'user': request.user}
         data = InvoiceListItemSerializer(
-            filtered_queryset, context=context, many=True).data
+            self.get_queryset(), context=context, many=True).data
 
         response = self.get_paginated_response(data)
 
         return response
 
     def post(self, request, *args, **kwargs):
-        user = request.user
-
         request_data = dict(request.data)
 
         serializer = CreateInvoiceSerializer(data=request_data)

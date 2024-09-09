@@ -63,4 +63,3 @@ class Command(BaseCommand):
 
         else:
             print('New test client can not be created without user with Client role.')
-

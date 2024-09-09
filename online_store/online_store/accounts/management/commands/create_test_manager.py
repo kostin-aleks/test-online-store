@@ -57,7 +57,7 @@ class Command(BaseCommand):
                     user=user,
                     phone=fake.phone_number()[:15],
                     gender=0)
-                user_profile.set_manager_permission()
+                userprofile.set_manager_permission()
 
         if user:
             if user.userprofile is None:
@@ -65,7 +65,7 @@ class Command(BaseCommand):
                     user=user,
                     phone=fake.phone_number()[:15],
                     gender=0)
-                user_profile.set_manager_permission()
+                userprofile.set_manager_permission()
 
             self.user_manager = user.userprofile
 

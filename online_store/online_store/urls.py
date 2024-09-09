@@ -18,9 +18,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.http import HttpResponse
-from django.urls import path
-
-from django.urls import include, path, re_path
+from django.urls import include, path
 
 from rest_framework.permissions import AllowAny
 
@@ -29,6 +27,7 @@ from drf_yasg import openapi
 
 
 def health_check(request):
+    """check availability"""
     return HttpResponse(status=200)
 
 

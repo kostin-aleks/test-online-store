@@ -13,8 +13,6 @@ from django.urls import reverse
 
 from rest_framework import status
 
-from djmoney.money import Money
-
 from online_store.accounts.models import UserProfile
 from .utils import random_string_alphadigit
 

@@ -1,38 +1,20 @@
-import json
-import jwt
 from logging import getLogger
-from decimal import Decimal
-from pprint import pprint
-import math
-import requests
-from time import time
+# from pprint import pprint
 
-from django.conf import settings
 from django.db import transaction
-from django.db.models import Min, Max
 from django.utils.translation import gettext as _
 #
-from rest_framework.decorators import parser_classes, api_view, permission_classes
-from rest_framework.exceptions import ValidationError
-from rest_framework.generics import (
-    RetrieveUpdateAPIView, CreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView)
-from rest_framework.parsers import JSONParser
+from rest_framework.exceptions import ValidationError, MethodNotAllowed
+from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.request import Request
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from rest_framework.views import APIView
 from rest_framework import status
 
-from drf_spectacular.utils import extend_schema
-from djmoney.money import Money
-
-from online_store.general.error_messages import PRODUCT_NOT_FOUND, ORDER_NOT_FOUND
-from online_store.general.utils import get_gender, atoi
-from online_store.general.permissions import (
-    IsManager, IsManagerOrReadOnly, IsClientUser)
-from .models import Order, OrderItem, Payment
+from online_store.general.error_messages import ORDER_NOT_FOUND, ACCESS_DENIED
+from .models import Order, Payment
 from .serializers import (
     OrderSerializer, OrderListItemSerializer,
     CreateOrderSerializer, OrderFullSerializer, PaymentSerializer,
@@ -216,4 +198,3 @@ class PaymentView(APIView, LimitOffsetPagination):
         else:
             raise ValidationError(
                 _("Something went wrong"), status=status.HTTP_400_BAD_REQUEST)
-

@@ -1,14 +1,11 @@
 import logging
 import uuid
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Permission
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from djmoney.models.fields import MoneyField
-from djmoney.money import Money
 from djmoney.models.validators import MinMoneyValidator
 
 from online_store.products.models import Product

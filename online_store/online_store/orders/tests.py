@@ -2,26 +2,18 @@
 Test case to test models related to orders
 """
 
-from datetime import date
-from decimal import Decimal
 import json
-from faker import Faker
-from pprint import pprint
+# from pprint import pprint
 import random
-import unittest
 
-from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from online_store.products.models import Product
-from .models import Order, Payment
-from online_store.general.test_utils import (
-    get_test_user, ApiTestCase, create_test_manager_user,
-    create_test_client_user)
+from .models import Order
+from online_store.general.test_utils import (get_test_user, ApiTestCase)
 
 
 class ApiOrdersTestCase(ApiTestCase):

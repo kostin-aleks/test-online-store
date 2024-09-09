@@ -4,10 +4,9 @@ Test case to test models related to accounts
 
 import json
 from faker import Faker
-from pprint import pprint
+# from pprint import pprint
 import unittest
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
@@ -15,9 +14,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from .models import UserProfile
-from online_store.general.test_utils import (
-    get_test_user, ApiTestCase, create_test_manager_user,
-    create_test_client_user)
+from online_store.general.test_utils import (get_test_user, ApiTestCase)
 
 
 class AccountTestCase(unittest.TestCase):

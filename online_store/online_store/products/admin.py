@@ -10,11 +10,13 @@ from .models import SubCategory, Category, Product
 
 @admin.action(description=_("Approve moderation"))
 def approve_moderation(modeladmin, request, queryset):
+    """action approve_moderation"""
     queryset.update(moderation_status=Product.Statuses.APPROVED)
 
 
 @admin.action(description=_("Reject moderation"))
 def reject_moderation(modeladmin, request, queryset):
+    """action reject_moderation"""
     queryset.update(moderation_status=Product.Statuses.CANCELLED)
 
 

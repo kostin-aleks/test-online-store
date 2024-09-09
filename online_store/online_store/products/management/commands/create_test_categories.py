@@ -71,6 +71,7 @@ class Command(BaseCommand):
     help = """Create test categories."""
 
     def handle(self, *args, **kwargs):
+        """handler"""
 
         for item in CATEGORY_DATA:
             category = Category.objects.filter(slug=item['slug']).first()

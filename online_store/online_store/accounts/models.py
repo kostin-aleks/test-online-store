@@ -1,3 +1,7 @@
+"""
+accounts ORM models
+"""
+
 import logging
 from decimal import Decimal
 
@@ -54,10 +58,13 @@ class UserProfile(models.Model):
 
     @classmethod
     def users_with_perm(cls, perm_name):
+        """
+        list of users with this permission
+        """
         return get_user_model().objects.filter(
-            models.Q(is_superuser=True)
-            | models.Q(user_permissions__codename=perm_name)
-            | models.Q(groups__permissions__codename=perm_name)).distinct()
+            models.Q(is_superuser=True) |
+            models.Q(user_permissions__codename=perm_name) |
+            models.Q(groups__permissions__codename=perm_name)).distinct()
 
     def set_manager_permission(self):
         """
@@ -99,6 +106,9 @@ class UserProfile(models.Model):
         return f"{self.user.last_name} {self.user.first_name}"
 
     def create_token(self):
+        """
+        create auth token
+        """
         refresh = RefreshToken.for_user(self.user)
         return {
             'refresh': str(refresh),
@@ -119,6 +129,9 @@ class UserProfile(models.Model):
 
 
 class TopUpAccount(models.Model):
+    """
+    Model to store adding money to user account
+    """
     user = models.ForeignKey(
         get_user_model(), on_delete=models.SET_NULL,
         null=True, blank=True,

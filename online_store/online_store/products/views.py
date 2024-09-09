@@ -1,3 +1,7 @@
+"""
+products views
+"""
+
 from logging import getLogger
 # from pprint import pprint
 import math
@@ -53,6 +57,9 @@ class CategoriesView(ListAPIView):
 
 
 class ProductView(APIView, LimitOffsetPagination):
+    """
+    GET and POST products
+    """
     permission_classes = [IsManagerOrReadOnly]
     serializer_type_class = {
         'get': ProductListItemSerializer,
@@ -60,6 +67,7 @@ class ProductView(APIView, LimitOffsetPagination):
     }
 
     def get_serializer_class(self):
+        """get serializer class"""
         method = self.request.method.lower()
         serializer = self.serializer_type_class.get(method)
         if serializer:
@@ -67,6 +75,7 @@ class ProductView(APIView, LimitOffsetPagination):
         raise MethodNotAllowed(method=method)
 
     def get_queryset(self):
+        """get queryset"""
         queryset = Product.objects.visible().select_related('subcategory')
 
         return queryset
@@ -166,6 +175,7 @@ class ProductView(APIView, LimitOffsetPagination):
         return response
 
     def post(self, request, *args, **kwargs):
+        """create a new product"""
         request_data = dict(request.data)
 
         serializer = CreateProductSerializer(data=request_data)
@@ -196,18 +206,22 @@ class ProductByIdView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsManagerOrReadOnly]
 
     def get_queryset(self):
+        """get queryset"""
         return Product.objects.exclude(moderation_status='deleted')
 
     def get_serializer_class(self):
+        """get serializer class"""
         return ProductFullSerializer
 
     def get_serializer_context(self):
+        """get serializer context"""
         context = super().get_serializer_context()
         user = self.request.user
         context['user'] = user
         return context
 
     def get(self, request, *args, **kwargs):
+        """GET one product by id"""
 
         product = Product.objects.filter(
             pk=kwargs['pk']).exclude(
@@ -220,6 +234,7 @@ class ProductByIdView(RetrieveUpdateDestroyAPIView):
         return Response(serializer_class(product, context=context).data)
 
     def delete(self, request, *args, **kwargs):
+        """delete one product by id (set status)"""
         from online_store.orders.service import cancel_orders_by_product
         product_id = kwargs.get('pk')
 
@@ -267,6 +282,9 @@ class ProductByIdView(RetrieveUpdateDestroyAPIView):
 
 
 class InvoiceView(APIView, LimitOffsetPagination):
+    """
+    GET and POST invoices
+    """
     permission_classes = [IsManager]
     serializer_type_class = {
         'get': InvoiceListItemSerializer,
@@ -274,6 +292,7 @@ class InvoiceView(APIView, LimitOffsetPagination):
     }
 
     def get_serializer_class(self):
+        """get serializer class"""
         method = self.request.method.lower()
         serializer = self.serializer_type_class.get(method)
         if serializer:
@@ -281,6 +300,7 @@ class InvoiceView(APIView, LimitOffsetPagination):
         raise MethodNotAllowed(method=method)
 
     def get_queryset(self):
+        """get queryset"""
         queryset = Invoice.objects.all().order_by('-id')
 
         return queryset
@@ -298,6 +318,7 @@ class InvoiceView(APIView, LimitOffsetPagination):
         return response
 
     def post(self, request, *args, **kwargs):
+        """create invoice"""
         request_data = dict(request.data)
 
         serializer = CreateInvoiceSerializer(data=request_data)

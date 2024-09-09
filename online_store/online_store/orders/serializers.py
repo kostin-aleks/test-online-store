@@ -1,3 +1,7 @@
+"""
+orders serializers
+"""
+
 from decimal import Decimal
 # from pprint import pprint
 
@@ -14,11 +18,17 @@ from .models import Order, OrderItem, Payment
 
 
 class OrderItemSerializer(serializers.Serializer):
+    """
+    Order item
+    """
     product = serializers.IntegerField()
     count = serializers.IntegerField()
 
 
 class CreateOrderSerializer(serializers.Serializer):
+    """
+    Data for creating user order
+    """
     price_currency = serializers.CharField()
     items = OrderItemSerializer(many=True)
 
@@ -26,6 +36,7 @@ class CreateOrderSerializer(serializers.Serializer):
         fields = ['items']
 
     def create(self, validated_data):
+        """custom creating"""
 
         order = Order.objects.create(
             client=self.context['user'],
@@ -50,6 +61,7 @@ class CreateOrderSerializer(serializers.Serializer):
         return order
 
     def validate(self, attrs):
+        """custom validating"""
         for item in attrs['items']:
             product = Product.objects.filter(pk=item['product']).first()
             if product is None:
@@ -60,6 +72,7 @@ class CreateOrderSerializer(serializers.Serializer):
 
 
 class OrderItemOutSerializer(serializers.ModelSerializer):
+    """Order Item"""
     product = ProductShortSerializer()
 
     class Meta:
@@ -68,6 +81,7 @@ class OrderItemOutSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    """Order"""
     items = OrderItemOutSerializer(many=True)
 
     class Meta:
@@ -76,6 +90,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class OrderListItemSerializer(serializers.ModelSerializer):
+    """Order"""
 
     class Meta:
         model = Order
@@ -83,6 +98,7 @@ class OrderListItemSerializer(serializers.ModelSerializer):
 
 
 class OrderFullSerializer(serializers.ModelSerializer):
+    """Order full data"""
     items = OrderItemOutSerializer(many=True)
 
     class Meta:
@@ -91,6 +107,7 @@ class OrderFullSerializer(serializers.ModelSerializer):
 
 
 class PaymentListItemSerializer(serializers.ModelSerializer):
+    """Payment"""
 
     class Meta:
         model = Payment
@@ -98,12 +115,14 @@ class PaymentListItemSerializer(serializers.ModelSerializer):
 
 
 class CreatePaymentSerializer(serializers.Serializer):
+    """Data to create payment"""
     order = serializers.IntegerField()
 
     class Meta:
         fields = ['order']
 
     def create(self, validated_data):
+        """custom creating"""
         order = Order.objects.filter(pk=validated_data['order']).first()
 
         payment = Payment.objects.create(
@@ -118,6 +137,7 @@ class CreatePaymentSerializer(serializers.Serializer):
         return payment
 
     def validate(self, attrs):
+        """custom validating"""
         user = self.context['user']
 
         order = Order.objects.filter(pk=attrs['order']).first()
@@ -135,6 +155,7 @@ class CreatePaymentSerializer(serializers.Serializer):
 
 
 class PaymentSerializer(serializers.ModelSerializer):
+    """Payment"""
 
     class Meta:
         model = Payment

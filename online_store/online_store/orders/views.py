@@ -1,3 +1,7 @@
+"""
+orders views
+"""
+
 from logging import getLogger
 # from pprint import pprint
 
@@ -25,6 +29,9 @@ logger = getLogger(__name__)
 
 
 class OrderView(APIView, LimitOffsetPagination):
+    """
+    GET and POST Orders
+    """
     permission_classes = [IsAuthenticated]
     serializer_type_class = {
         'get': OrderListItemSerializer,
@@ -32,6 +39,7 @@ class OrderView(APIView, LimitOffsetPagination):
     }
 
     def get_serializer_class(self):
+        """get serializer class"""
         method = self.request.method.lower()
         serializer = self.serializer_type_class.get(method)
         if serializer:
@@ -39,6 +47,7 @@ class OrderView(APIView, LimitOffsetPagination):
         raise MethodNotAllowed(method=method)
 
     def get_queryset(self):
+        """get queryset"""
         queryset = Order.objects.all().order_by('-id')
 
         return queryset
@@ -60,6 +69,7 @@ class OrderView(APIView, LimitOffsetPagination):
         return Response(data)
 
     def post(self, request, *args, **kwargs):
+        """ create order """
         user = request.user
 
         request_data = dict(request.data)
@@ -95,18 +105,22 @@ class OrderByIdView(RetrieveUpdateDestroyAPIView):
     http_method_names = ['get', 'delete']
 
     def get_queryset(self):
+        """get queryset"""
         return Order.objects.exclude(moderation_status='rejected')
 
     def get_serializer_class(self):
+        """get serializer class"""
         return OrderFullSerializer
 
     def get_serializer_context(self):
+        """get serializer content"""
         context = super().get_serializer_context()
         user = self.request.user
         context['user'] = user
         return context
 
     def get(self, request, *args, **kwargs):
+        """get one order by id """
         user = self.request.user
         order = Order.objects.filter(
             pk=kwargs['pk']).exclude(
@@ -126,6 +140,7 @@ class OrderByIdView(RetrieveUpdateDestroyAPIView):
         return Response(serializer_class(order, context=context).data)
 
     def delete(self, request, *args, **kwargs):
+        """delete (set status) one order by id """
         order_id = kwargs.get('pk')
 
         order = Order.objects.filter(pk=order_id).first()
@@ -139,6 +154,9 @@ class OrderByIdView(RetrieveUpdateDestroyAPIView):
 
 
 class PaymentView(APIView, LimitOffsetPagination):
+    """
+    GET and POST payments
+    """
     permission_classes = [IsAuthenticated]
     serializer_type_class = {
         'get': PaymentListItemSerializer,
@@ -146,6 +164,7 @@ class PaymentView(APIView, LimitOffsetPagination):
     }
 
     def get_serializer_class(self):
+        """get serializer class"""
         method = self.request.method.lower()
         serializer = self.serializer_type_class.get(method)
         if serializer:
@@ -153,6 +172,7 @@ class PaymentView(APIView, LimitOffsetPagination):
         raise MethodNotAllowed(method=method)
 
     def get_queryset(self):
+        """get queryset"""
         queryset = Payment.objects.all().order_by('-id')
 
         return queryset
@@ -174,6 +194,7 @@ class PaymentView(APIView, LimitOffsetPagination):
         return Response(data)
 
     def post(self, request, *args, **kwargs):
+        """create payment"""
         user = request.user
 
         request_data = dict(request.data)

@@ -1,3 +1,7 @@
+"""
+products models
+"""
+
 import logging
 import uuid
 
@@ -12,6 +16,9 @@ logger = logging.getLogger(__name__)
 
 
 class Category(models.Model):
+    """
+    Product Category
+    """
     slug = models.SlugField(
         _("slug"), unique=True, null=True, blank=True, db_index=True)
     name = models.CharField(_("name"), max_length=128)
@@ -28,10 +35,14 @@ class Category(models.Model):
 
     @property
     def subcategories(self):
+        """list of subcategories"""
         return self.sub_categories.all().order_by('slug')
 
 
 class SubCategory(models.Model):
+    """
+    Product Subcategory
+    """
     slug = models.SlugField(
         _("slug"), unique=True, null=True, blank=True, db_index=True)
     name = models.CharField(_("name"), max_length=128)
@@ -52,19 +63,31 @@ class SubCategory(models.Model):
 
 
 class CustomProductQuerySet(models.QuerySet):
+    """custom queryset"""
+
     def visible(self):
+        """method visible"""
         return self.filter(moderation_status="approved")
 
 
 class ProductManager(models.Manager):
+    """
+    custom manager
+    """
+
     def get_queryset(self):
+        """get queryset"""
         return CustomProductQuerySet(self.model, using=self._db)
 
     def visible(self):
+        """visible"""
         return self.get_queryset().visible()
 
 
 class Product(models.Model):
+    """
+    Product data
+    """
 
     class Statuses(models.TextChoices):
         # waiting for admin approval
@@ -122,6 +145,9 @@ class Product(models.Model):
 
 
 class Invoice(models.Model):
+    """
+    Invoice with new count of products
+    """
     uuid = models.UUIDField(_("uuid"), default=uuid.uuid4, editable=False)
     date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -136,6 +162,9 @@ class Invoice(models.Model):
 
 
 class InvoiceItem(models.Model):
+    """
+    Invoice Item
+    """
     product = models.ForeignKey(
         Product, on_delete=models.SET_NULL,
         null=True, blank=True,

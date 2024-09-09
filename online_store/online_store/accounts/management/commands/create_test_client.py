@@ -21,10 +21,12 @@ class Command(BaseCommand):
     owner = None
 
     def add_arguments(self, parser):
+        """add arguments"""
         parser.add_argument(
             '-e', '--email', type=str, help='Email of test user')
 
     def handle(self, *args, **kwargs):
+        """handler"""
         fake = Faker()
 
         self.user_client = None

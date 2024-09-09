@@ -1,3 +1,7 @@
+"""
+general utility
+"""
+
 from math import sqrt
 import string
 import random

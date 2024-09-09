@@ -14,6 +14,7 @@ class Command(BaseCommand):
     help = """Create test store objects."""
 
     def handle(self, *args, **kwargs):
+        """handler"""
         call_command('create_test_client')
         call_command('create_test_manager')
         call_command('create_test_categories')

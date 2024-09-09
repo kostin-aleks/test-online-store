@@ -1,3 +1,7 @@
+"""
+
+"""
+
 from rest_framework.permissions import SAFE_METHODS, BasePermission
 from rest_framework.exceptions import NotAuthenticated, PermissionDenied
 
@@ -6,6 +10,7 @@ class IsSuperUser(BasePermission):
     """Allows access only to superusers."""
 
     def has_permission(self, request, view):
+        """permission logic"""
         return bool(request.user.is_authenticated and request.user.is_superuser)
 
 
@@ -15,6 +20,7 @@ class IsAdminUserOrReadOnly(BasePermission):
     """
 
     def has_permission(self, request, view):
+        """permission logic"""
         return bool(
             # Read permissions are allowed to any request,
             # so we'll always allow GET, HEAD or OPTIONS requests.
@@ -27,6 +33,7 @@ class IsClientUser(BasePermission):
     """Allows access only to client users."""
 
     def has_permission(self, request, view):
+        """permission logic"""
         if request.user.is_anonymous:
             raise NotAuthenticated
         return True
@@ -36,6 +43,7 @@ class IsManager(BasePermission):
     """Allows access only to manager users."""
 
     def has_permission(self, request, view):
+        """permission logic"""
         if request.user.is_anonymous:
             raise NotAuthenticated
         if request.user.userprofile and \
@@ -51,6 +59,7 @@ class IsManagerOrReadOnly(BasePermission):
     """
 
     def has_permission(self, request, view):
+        """permission logic"""
         return bool(
             # Read permissions are allowed to any request,
             # so we'll always allow GET, HEAD or OPTIONS requests.

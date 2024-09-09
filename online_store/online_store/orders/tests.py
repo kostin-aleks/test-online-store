@@ -22,6 +22,7 @@ class ApiOrdersTestCase(ApiTestCase):
     """
 
     def setUp(self):
+        """set up data"""
         self.client = APIClient()
 
         self.user_client = get_test_user(role='client')
@@ -29,9 +30,11 @@ class ApiOrdersTestCase(ApiTestCase):
         self.set_headers()
 
     def tearDown(self):
+        """tear down"""
         self.client.logout()
 
     def order_data(self):
+        """populate order data"""
         ids = Product.objects.visible().values_list('id', flat=True)
         products = []
         for _ in range(3):
@@ -46,6 +49,7 @@ class ApiOrdersTestCase(ApiTestCase):
         return {'items': data, 'price_currency': 'UAH'}
 
     def payment_data(self):
+        """populate payment data"""
         order = Order.objects.filter(
             client=self.user_client, moderation_status='new').first()
 

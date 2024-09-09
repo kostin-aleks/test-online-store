@@ -1,3 +1,7 @@
+"""
+orders ORM models
+"""
+
 import logging
 import uuid
 
@@ -14,6 +18,9 @@ logger = logging.getLogger(__name__)
 
 
 class Order(models.Model):
+    """
+    User order data
+    """
 
     class Statuses(models.TextChoices):
         NEW = ("new", _("New"))
@@ -47,6 +54,9 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
+    """
+    Order item with product and amount
+    """
     product = models.ForeignKey(
         Product, on_delete=models.SET_NULL,
         null=True, blank=True,
@@ -71,6 +81,9 @@ class OrderItem(models.Model):
 
 
 class Payment(models.Model):
+    """
+    User payment data
+    """
 
     uuid = models.UUIDField(_("uuid"), default=uuid.uuid4, editable=False)
     client = models.ForeignKey(

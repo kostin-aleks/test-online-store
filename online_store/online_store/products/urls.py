@@ -1,3 +1,7 @@
+"""
+products urls
+"""
+
 from django.urls import path
 
 from .views import CategoriesView, ProductView, ProductByIdView, InvoiceView

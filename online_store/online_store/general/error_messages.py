@@ -1,5 +1,5 @@
 """
-Error messages with translations
+Error messages
 """
 
 from django.utils.translation import gettext as _

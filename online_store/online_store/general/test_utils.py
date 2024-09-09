@@ -1,6 +1,7 @@
 """
 Functions and classes for tests
 """
+
 import json
 from faker import Faker
 import random

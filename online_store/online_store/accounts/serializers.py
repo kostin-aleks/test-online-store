@@ -1,3 +1,7 @@
+"""
+accounts serializers
+"""
+
 from django.contrib.auth import authenticate, get_user_model
 from django.utils.translation import gettext as _
 
@@ -10,6 +14,9 @@ from .models import UserProfile, TopUpAccount
 
 
 class SignInSerializer(serializers.Serializer):
+    """
+    Data to sign in user
+    """
     username = serializers.CharField()
     password = serializers.CharField()
 
@@ -37,6 +44,9 @@ class SignInSerializer(serializers.Serializer):
 
 
 class UserOutSerializer(serializers.ModelSerializer):
+    """
+    user data
+    """
     balance_funds = serializers.SerializerMethodField()
 
     class Meta:
@@ -45,6 +55,9 @@ class UserOutSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_balance_funds(obj):
+        """
+        get user balance (money)
+        """
         if obj.userprofile is not None:
             balance = obj.userprofile.balance_funds
             if balance is not None:
@@ -55,6 +68,9 @@ class UserOutSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    """
+    user profile
+    """
     user = UserOutSerializer()
     gender = serializers.SerializerMethodField()
     balance_funds = serializers.SerializerMethodField()
@@ -65,11 +81,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_gender(obj):
+        """
+        getter for field gender
+        """
         if obj.gender is not None:
             return 'F' if obj.gender == 1 else 'M' if obj.gender == 0 else None
 
     @staticmethod
     def get_balance_funds(obj):
+        """
+        getter for field balance_found
+        """
         balance = obj.balance_funds
         if balance is not None:
             return {
@@ -79,6 +101,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class SignUpSerializer(serializers.Serializer):
+    """
+    Data to sign up user
+    """
     username = serializers.CharField()
     password = serializers.CharField()
     email = serializers.EmailField()
@@ -88,6 +113,9 @@ class SignUpSerializer(serializers.Serializer):
     gender = serializers.CharField(required=False)
 
     def validate(self, attrs):
+        """
+        custom validation
+        """
         username = attrs['username']
         # check if user with given username exists
 
@@ -101,11 +129,17 @@ class SignUpSerializer(serializers.Serializer):
 
 
 class TopUpAccountSerializer(serializers.Serializer):
+    """
+    Data to add money to user account
+    """
     username = serializers.CharField()
     amount = serializers.FloatField()
     amount_currency = serializers.CharField()
 
     def validate(self, attrs):
+        """
+        custom validation
+        """
         username = attrs['username']
         # check if user with given username exists
 
@@ -115,6 +149,9 @@ class TopUpAccountSerializer(serializers.Serializer):
         return attrs
 
     def create(self, validated_data):
+        """
+        custom creation
+        """
         user = get_user_model().objects.filter(
             username=validated_data['username']).first()
 
@@ -127,7 +164,9 @@ class TopUpAccountSerializer(serializers.Serializer):
 
 
 class TopUpAccountItemSerializer(serializers.ModelSerializer):
-
+    """
+    Data to add money to user account
+    """
     class Meta:
         model = TopUpAccount
         fields = '__all__'

@@ -1,3 +1,7 @@
+"""
+products serializers
+"""
+
 # from pprint import pprint
 from django.utils.translation import gettext as _
 
@@ -9,6 +13,9 @@ from .models import Category, SubCategory, Product, Invoice, InvoiceItem
 
 
 class SubCategorySerializer(serializers.ModelSerializer):
+    """
+    Subcategory data
+    """
 
     class Meta:
         model = SubCategory
@@ -16,6 +23,9 @@ class SubCategorySerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    """
+    Category data
+    """
     subcategories = SubCategorySerializer(many=True)
 
     class Meta:
@@ -24,6 +34,9 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ProductListItemSerializer(serializers.ModelSerializer):
+    """
+    Product data
+    """
     subcategory = serializers.SerializerMethodField()
     available_quantity = serializers.IntegerField()
 
@@ -37,6 +50,9 @@ class ProductListItemSerializer(serializers.ModelSerializer):
 
 
 class ProductShortSerializer(serializers.ModelSerializer):
+    """
+    Product short data
+    """
     subcategory = serializers.SerializerMethodField()
 
     class Meta:
@@ -45,10 +61,14 @@ class ProductShortSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_subcategory(obj):
+        """getter for subcategory"""
         return obj.subcategory.slug if obj.subcategory else None
 
 
 class ProductFullSerializer(serializers.ModelSerializer):
+    """
+    Product data
+    """
     subcategory = serializers.SerializerMethodField()
     available_quantity = serializers.IntegerField()
 
@@ -58,10 +78,14 @@ class ProductFullSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_subcategory(obj):
+        """getter for subcategory"""
         return obj.subcategory.slug if obj.subcategory else None
 
 
 class CreateProductSerializer(serializers.ModelSerializer):
+    """
+    Product data to create new one
+    """
     subcategory = serializers.CharField(required=False)
     price = serializers.FloatField()
     price_currency = serializers.CharField()
@@ -73,12 +97,14 @@ class CreateProductSerializer(serializers.ModelSerializer):
             'features', 'technical_features', 'price', 'price_currency']
 
     def create(self, validated_data):
+        """custom creating"""
 
         instance = super(CreateProductSerializer, self).create(validated_data)
 
         return instance
 
     def update(self, instance, validated_data):
+        """custom updating"""
 
         product, created = Product.objects.update_or_create(
             id=instance.id, defaults=validated_data)
@@ -86,6 +112,7 @@ class CreateProductSerializer(serializers.ModelSerializer):
         return instance
 
     def validate(self, attrs):
+        """custom validating"""
         subcategory_slug = attrs.get('subcategory')
         if subcategory_slug:
             try:
@@ -99,6 +126,9 @@ class CreateProductSerializer(serializers.ModelSerializer):
 
 
 class InvoiceItemSerializer(serializers.Serializer):
+    """
+    Invoice Item
+    """
     product = serializers.IntegerField()
     amount = serializers.IntegerField()
     price = serializers.FloatField(required=False)
@@ -106,6 +136,9 @@ class InvoiceItemSerializer(serializers.Serializer):
 
 
 class CreateInvoiceSerializer(serializers.Serializer):
+    """
+    Data to create Invoice
+    """
     date = serializers.DateField(input_formats=['%d-%m-%Y', 'iso-8601'])
     items = InvoiceItemSerializer(many=True)
 
@@ -113,6 +146,7 @@ class CreateInvoiceSerializer(serializers.Serializer):
         fields = ['date', 'items']
 
     def create(self, validated_data):
+        """custom creating"""
 
         instance = Invoice.objects.create(
             date=validated_data['date']
@@ -129,6 +163,7 @@ class CreateInvoiceSerializer(serializers.Serializer):
         return instance
 
     def validate(self, attrs):
+        """custom validating"""
         for item in attrs['items']:
             product = Product.objects.filter(pk=item['product']).first()
             if product is None:
@@ -139,6 +174,9 @@ class CreateInvoiceSerializer(serializers.Serializer):
 
 
 class InvoiceItemOutSerializer(serializers.ModelSerializer):
+    """
+    Invoice
+    """
     product = ProductShortSerializer()
 
     class Meta:
@@ -147,6 +185,9 @@ class InvoiceItemOutSerializer(serializers.ModelSerializer):
 
 
 class InvoiceSerializer(serializers.ModelSerializer):
+    """
+    Invoice
+    """
     items = InvoiceItemOutSerializer(many=True)
 
     class Meta:
@@ -155,6 +196,9 @@ class InvoiceSerializer(serializers.ModelSerializer):
 
 
 class InvoiceListItemSerializer(serializers.ModelSerializer):
+    """
+    Invoice
+    """
 
     class Meta:
         model = Invoice

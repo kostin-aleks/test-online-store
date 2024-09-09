@@ -33,13 +33,8 @@ class SignInView(APIView):
     """
     permission_classes = [AllowAny]
 
-    @extend_schema(
-        methods=['post'],
-        request=SignInSerializer,
-        responses={201: UserProfileSerializer},
-        operation_id='Sign In',
-        description='POST auth/login')
     def post(self, request):
+        """sign in new user"""
         serializer = SignInSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             user = serializer.validated_data['user']
@@ -47,6 +42,8 @@ class SignInView(APIView):
             return Response({
                 'user': serializer(user.userprofile).data,
                 'token': user.userprofile.create_token()})
+
+        raise ValidationError(serializer.errors)
 
     def get_serializer_class(self):
         """get serializer class"""
@@ -82,8 +79,8 @@ class SignUpView(CreateAPIView):
             return Response(
                 UserProfileSerializer(user_profile).data,
                 status=status.HTTP_201_CREATED)
-        else:
-            raise ValidationError(serializer.errors)
+
+        raise ValidationError(serializer.errors)
 
     def get_serializer_class(self):
         """get serializer class"""
@@ -108,6 +105,7 @@ class ProfileView(RetrieveUpdateAPIView):
             user_profile = serializer.save()
 
             return Response(self.get_serializer_class()(user_profile).data)
+        raise ValidationError(serializer.errors)
 
     def get_object(self):
         """get object"""
@@ -140,8 +138,8 @@ class TopUpAccountView(CreateAPIView):
             return Response(
                 TopUpAccountItemSerializer(item).data,
                 status=status.HTTP_201_CREATED)
-        else:
-            raise ValidationError(serializer.errors)
+
+        raise ValidationError(serializer.errors)
 
     def get_serializer_class(self):
         """get profile serializer"""

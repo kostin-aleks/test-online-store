@@ -20,35 +20,46 @@ from online_store.general.test_utils import (get_test_user, ApiTestCase)
 
 
 class ProductTestCase(unittest.TestCase):
+    """
+    unittest test case for products
+    """
 
     def setUp(self):
+        """set up"""
         self.category = Category.objects.first()
         self.subcategory = self.category.sub_categories.first()
 
     def tearDown(self):
+        """tear down"""
         pass
 
     def test_00_category(self):
+        """ category"""
         self.assertTrue(self.category)
         self.assertTrue(self.category.slug)
 
     def test_10_categories_count(self):
+        """ count of categories """
         categories = Category.objects.all()
         self.assertTrue(categories.count())
 
     def test_20_subcategory(self):
+        """ subcategory"""
         self.assertTrue(self.subcategory)
         self.assertTrue(self.subcategory.slug)
 
     def test_30_subcategories_count(self):
+        """ count of subcategories """
         subcategories = SubCategory.objects.all()
         self.assertTrue(subcategories.count())
 
     def test_40_product(self):
+        """product"""
         self.product = Product.objects.first()
         self.assertTrue(self.product)
 
     def test_50_products_count(self):
+        """count of products"""
         products = Product.objects.all()
         self.assertTrue(products.count())
         products = Product.objects.visible()
@@ -61,6 +72,7 @@ class ApiProductsTestCase(ApiTestCase):
     """
 
     def setUp(self):
+        """set up"""
         self.client = APIClient()
 
         self.user_client = get_test_user(role='client')
@@ -68,9 +80,11 @@ class ApiProductsTestCase(ApiTestCase):
         self.set_headers()
 
     def tearDown(self):
+        """tear down"""
         self.client.logout()
 
     def product_data(self):
+        """populate data to create product"""
         SUBCATEGORY = ['kaski', 'karabiny', 'zazhimy']
         NAME = {
             'kaski': 'Каска',

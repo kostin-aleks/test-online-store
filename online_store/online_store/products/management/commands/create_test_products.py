@@ -184,6 +184,7 @@ class Command(BaseCommand):
     help = """Create test categories."""
 
     def handle(self, *args, **kwargs):
+        """handler"""
 
         for item in PRODUCT_DATA:
             print(f"NAME: {item['name']}")

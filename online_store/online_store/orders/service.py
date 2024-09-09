@@ -1,3 +1,7 @@
+"""
+orders services
+"""
+
 from .models import Order, OrderItem
 
 

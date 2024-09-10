@@ -40,7 +40,7 @@ class SignInView(CreateAPIView):
             user = serializer.validated_data['user']
             serializer = self.get_serializer_class()
             return Response({
-                'user': serializer(user.userprofile).data,
+                'user': UserProfileSerializer(user.userprofile).data,
                 'token': user.userprofile.create_token()})
 
         raise ValidationError(serializer.errors)

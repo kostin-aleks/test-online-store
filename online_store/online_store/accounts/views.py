@@ -27,7 +27,7 @@ from .serializers import (
 logger = getLogger(__name__)
 
 
-class SignInView(APIView):
+class SignInView(CreateAPIView):
     """
     sign in user
     """
@@ -47,7 +47,7 @@ class SignInView(APIView):
 
     def get_serializer_class(self):
         """get serializer class"""
-        return UserProfileSerializer
+        return SignInSerializer
 
 
 class SignUpView(CreateAPIView):
@@ -56,7 +56,7 @@ class SignUpView(CreateAPIView):
     """
     permission_classes = [AllowAny]
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         """ sign up new user """
         data = request.data
 

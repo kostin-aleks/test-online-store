@@ -33,7 +33,7 @@ class CreateOrderSerializer(serializers.Serializer):
     items = OrderItemSerializer(many=True)
 
     class Meta:
-        fields = ['items']
+        fields = ['price_currency', 'items']
 
     def create(self, validated_data):
         """custom creating"""
@@ -46,7 +46,13 @@ class CreateOrderSerializer(serializers.Serializer):
         for item in validated_data['items']:
             product = Product.objects.get(pk=item['product'])
             count = item['count']
-            product_amount = product.price.amount * Decimal(count)
+
+            action = self.context.get('action')
+            product_amount = product.price.amount
+            if action:
+                discount = action.discount
+                product_amount = amount * Decimal((100.0 - discount) / 100.0)
+            product_amount = product_amount * Decimal(count)
             amount += product_amount
 
             OrderItem.objects.create(
@@ -95,6 +101,49 @@ class OrderListItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
+
+
+class SoldProductListSerializer(serializers.ModelSerializer):
+    """Sold Product"""
+    client = serializers.SerializerMethodField()
+    client_id = serializers.SerializerMethodField()
+    order_id = serializers.SerializerMethodField()
+    paid_at = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OrderItem
+        fields = [
+            'id', 'product', 'amount', 'count', 'client', 'client_id',
+            'order_id', 'paid_at']
+
+    @staticmethod
+    def get_client(obj):
+        """
+        get client user name
+        """
+        return obj.order.client.username
+
+    @staticmethod
+    def get_client_id(obj):
+        """
+        get client id
+        """
+        return obj.order.client.id
+
+    @staticmethod
+    def get_order_id(obj):
+        """
+        get order id
+        """
+        return obj.order.id
+
+    @staticmethod
+    def get_paid_at(obj):
+        """
+        get paid date
+        """
+        if obj.order.paid_at:
+            return obj.order.paid_at.strftime('%Y-%m-%d')
 
 
 class OrderFullSerializer(serializers.ModelSerializer):
@@ -160,3 +209,14 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = '__all__'
+
+
+class FilterPaidProductsSerializer(serializers.Serializer):
+    """
+    Data for filtering list of paid products
+    """
+    date_from = serializers.DateField(required=False)
+    date_to = serializers.DateField(required=False)
+    product = serializers.CharField(required=False)
+    category = serializers.CharField(required=False)
+    subcategory = serializers.CharField(required=False)

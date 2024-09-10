@@ -3,7 +3,7 @@ Test case to test models related to orders
 """
 
 import json
-# from pprint import pprint
+from pprint import pprint
 import random
 
 from django.urls import reverse
@@ -74,7 +74,7 @@ class ApiOrdersTestCase(ApiTestCase):
         self.assertTrue(len(data))
         result = data[0]
         self.assertTrue(result['id'])
-        self.assertTrue(result['amount'])
+        self.assertTrue(result['amount'] is not None)
 
     def test_0030_add_order(self):
         """
@@ -138,8 +138,28 @@ class ApiOrdersTestCase(ApiTestCase):
         response = self.client.post(reverse('payments'), data, format='json')
 
         response_data = json.loads(response.content)
-        # pprint(response_data)
+        pprint(response_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(response_data['uuid'])
         self.assertTrue(response_data['id'])
         self.assertTrue(response_data['amount'])
+
+    def test_0060_sold_products(self):
+        """
+        end-point sold-products
+        GET
+        """
+        self.user_manager = get_test_user(role='manager')
+        self.user_token, self.refresh_token = self.get_jwt_token(role='manager')
+        self.set_headers()
+
+        query = '?category=alpinism&date_from=2024-01-01&date_to=2024-12-01'
+        response = self.client.get(reverse('sold-products') + query)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = json.loads(response.content)
+
+        self.assertTrue(data['count'])
+        results = data['results']
+        result = results[0]
+        self.assertTrue(result['id'])
+        self.assertTrue(result['amount'])

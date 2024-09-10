@@ -5,7 +5,7 @@ accounts views
 from logging import getLogger
 # from pprint import pprint
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate, login
 
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView

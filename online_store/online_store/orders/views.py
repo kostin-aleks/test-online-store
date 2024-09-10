@@ -18,11 +18,14 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from online_store.general.error_messages import ORDER_NOT_FOUND, ACCESS_DENIED
-from .models import Order, Payment
+from online_store.general.permissions import IsManager
+from online_store.products.models import PriceAction
+from .models import Order, OrderItem, Payment
 from .serializers import (
     OrderSerializer, OrderListItemSerializer,
     CreateOrderSerializer, OrderFullSerializer, PaymentSerializer,
-    PaymentListItemSerializer, CreatePaymentSerializer,
+    PaymentListItemSerializer, CreatePaymentSerializer, SoldProductListSerializer,
+    FilterPaidProductsSerializer,
 )
 
 logger = getLogger(__name__)
@@ -74,7 +77,7 @@ class OrderView(APIView, LimitOffsetPagination):
 
         request_data = dict(request.data)
 
-        context = {'user': user}
+        context = {'user': user, 'action': PriceAction.actual_action()}
         serializer = CreateOrderSerializer(data=request_data, context=context)
         if not serializer.is_valid():
             error_msg = _("Data is invalid, please check these fields:") + " "
@@ -228,3 +231,99 @@ class PaymentView(APIView, LimitOffsetPagination):
         else:
             raise ValidationError(
                 _("Something went wrong"), status=status.HTTP_400_BAD_REQUEST)
+
+
+class SoldProductView(APIView, LimitOffsetPagination):
+    """
+    GET sold products
+    """
+    permission_classes = [IsManager]
+    http_method_names = ['get']
+
+    def get_serializer_class(self):
+        """get serializer class"""
+        return SoldProductListSerializer
+
+    def get_queryset(self):
+        """get queryset"""
+        queryset = OrderItem.objects.filter(
+            order__moderation_status=Order.Statuses.PAID
+        ).filter(
+            order__paid_at__isnull=False
+        ).select_related('order', 'product')
+
+        return queryset
+
+    def get(self, request, *args, **kwargs):
+        """
+        GET list of sold products with filtration
+        """
+        def get_list(params, field_name):
+            items = params.get(field_name)
+            if items:
+                if items == 'undefined':
+                    items = []
+                else:
+                    items = [s.strip() for s in items.split(',') if s]
+            else:
+                items = []
+            return items
+
+        user = request.user
+
+        serializer = FilterPaidProductsSerializer(data=request.query_params.dict())
+        if not serializer.is_valid():
+            error_msg = _("Data is invalid, please check these fields:") + " "
+            error_msg += ", ".join([_(f"{key}") for key in serializer.errors.keys()])
+            return Response(error_msg, status=status.HTTP_400_BAD_REQUEST)
+
+        filters_from_request = serializer.data
+        categories = get_list(filters_from_request, 'category')
+        subcategories = get_list(filters_from_request, 'subcategory')
+        products = get_list(filters_from_request, 'product')
+        products = [int(item) for item in products]
+        date_from = filters_from_request.get('date_from')
+        date_to = filters_from_request.get('date_to')
+
+        filtered_queryset = self.get_queryset()
+
+        if categories:
+            filtered_queryset = filtered_queryset.filter(
+                product__subcategory__category__slug__in=categories)
+
+        if subcategories:
+            filtered_queryset = filtered_queryset.filter(
+                product__subcategory__slug__in=subcategories)
+
+        if products:
+            filtered_queryset = filtered_queryset.filter(
+                product__id__in=products)
+
+        if date_from:
+            filtered_queryset = filtered_queryset.filter(
+                order__paid_at__date__gte=date_from)
+
+        if date_to:
+            filtered_queryset = filtered_queryset.filter(
+                order__paid_at__date__lte=date_to)
+
+        # order the filtered queryset if ordering param was provided
+        non_default_ordering = False
+        order_by = request.query_params.get('ordering')
+        orderby = "order__paid_at"
+        if order_by and order_by.startswith('-'):
+            orderby = '-' + orderby
+
+        filtered_queryset = filtered_queryset.distinct()
+        # paginate the filtered queryset
+        filtered_queryset = self.paginate_queryset(
+            filtered_queryset, request, view=self)
+
+        # serialize the filtered queryset
+        context = {'user': user}
+        data = SoldProductListSerializer(
+            filtered_queryset, context=context, many=True).data
+
+        response = self.get_paginated_response(data)
+
+        return response

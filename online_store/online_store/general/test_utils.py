@@ -40,7 +40,7 @@ class ApiTestCase(unittest.TestCase):
                 password = settings.API_TEST_ADMIN_PASSWORD
 
         response = self.client.post(
-            reverse('login'),
+            reverse('signin'),
             {
                 'username': username,
                 'password': password,

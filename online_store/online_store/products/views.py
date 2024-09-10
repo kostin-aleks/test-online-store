@@ -153,7 +153,7 @@ class ProductView(APIView, LimitOffsetPagination):
             filtered_queryset, request, view=self)
 
         # serialize the filtered queryset
-        context = {'user': user}
+        context = {'user': user, 'action': PriceAction.actual_action()}
         data = ProductListItemSerializer(
             filtered_queryset, context=context, many=True).data
 
@@ -220,6 +220,7 @@ class ProductByIdView(RetrieveUpdateDestroyAPIView):
         context = super().get_serializer_context()
         user = self.request.user
         context['user'] = user
+        context['action'] = PriceAction.actual_action()
         return context
 
     def get(self, request, *args, **kwargs):

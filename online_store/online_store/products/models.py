@@ -208,3 +208,11 @@ class PriceAction(models.Model):
         verbose_name = _("Price reduction action")
         verbose_name_plural = _("Price reduction actions")
         db_table = 'products_price_action'
+
+    @classmethod
+    def actual_action(cls):
+        """
+        last active price action
+        """
+        return cls.objects.filter(active=True).order_by('date').last()
+

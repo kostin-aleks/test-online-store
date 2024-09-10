@@ -153,6 +153,7 @@ class ApiProductsTestCase(ApiTestCase):
         results = data['results']
         self.assertTrue(results)
         result = results[0]
+        # pprint(result)
         self.assertTrue(result['uuid'])
         self.assertTrue(result['id'])
 

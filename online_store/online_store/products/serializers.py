@@ -1,8 +1,9 @@
 """
 products serializers
 """
-
+from decimal import Decimal
 # from pprint import pprint
+
 from django.utils.translation import gettext as _
 
 from rest_framework import serializers
@@ -39,14 +40,26 @@ class ProductListItemSerializer(serializers.ModelSerializer):
     """
     subcategory = serializers.SerializerMethodField()
     available_quantity = serializers.IntegerField()
+    actual_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = ['id', 'uuid', 'name', 'price', 'subcategory', 'available_quantity']
+        fields = [
+            'id', 'uuid', 'name', 'price', 'actual_price', 'subcategory',
+            'available_quantity']
 
     @staticmethod
     def get_subcategory(obj):
         return obj.subcategory.slug if obj.subcategory else None
+
+    def get_actual_price(self, obj):
+        if self.context.get('action'):
+            action = self.context['action']
+            amount = obj.price.amount
+            discount = action.discount
+            new_price = amount * Decimal((100.0 - discount) / 100.0)
+            return round(new_price, 2)
+        return obj.price.amount
 
 
 class ProductShortSerializer(serializers.ModelSerializer):
@@ -71,6 +84,7 @@ class ProductFullSerializer(serializers.ModelSerializer):
     """
     subcategory = serializers.SerializerMethodField()
     available_quantity = serializers.IntegerField()
+    actual_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -80,6 +94,15 @@ class ProductFullSerializer(serializers.ModelSerializer):
     def get_subcategory(obj):
         """getter for subcategory"""
         return obj.subcategory.slug if obj.subcategory else None
+
+    def get_actual_price(self, obj):
+        if self.context.get('action'):
+            action = self.context['action']
+            amount = obj.price.amount
+            discount = action.discount
+            new_price = amount * Decimal((100.0 - discount) / 100.0)
+            return round(new_price, 2)
+        return obj.price.amount
 
 
 class CreateProductSerializer(serializers.ModelSerializer):

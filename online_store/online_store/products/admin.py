@@ -5,7 +5,7 @@ There are Admin Classes to present in admin interface objects related to product
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
-from .models import SubCategory, Category, Product
+from .models import SubCategory, Category, Product, Invoice, InvoiceItem, PriceAction
 
 
 @admin.action(description=_("Approve moderation"))
@@ -63,3 +63,40 @@ class SubCategoryAdmin(admin.ModelAdmin):
 
 
 admin.site.register(SubCategory, SubCategoryAdmin)
+
+
+class InvoiceItemInline(admin.StackedInline):
+    """
+    Inline admin class to present Invoice Item
+    """
+    model = InvoiceItem
+    verbose_name = 'Invoice Item'
+    verbose_name_plural = 'Invoice Items'
+
+
+class InvoiceAdmin(admin.ModelAdmin):
+    """
+    An InvoiceAdmin object encapsulates an instance of the Invoice
+    with additional list of InvoiceItem
+    """
+    list_display = (
+        'id', 'date', 'uuid')
+    inlines = (InvoiceItemInline, )
+
+
+admin.site.register(Invoice, InvoiceAdmin)
+
+
+class PriceActionAdmin(admin.ModelAdmin):
+    """
+    An PriceActionAdmin object encapsulates an instance of the PriceAction
+    """
+    verbose_name = _('Price reduction action')
+    verbose_name_plural = _('Price reduction actions')
+    list_display = (
+        'id', 'date', 'active', )  # 'discount'
+    list_filter = ['active', 'date']
+    ordering = ['-date', '-id']
+
+
+admin.site.register(PriceAction, PriceActionAdmin)

@@ -1,7 +1,7 @@
 """
 products views
 """
-
+from decimal import Decimal
 from logging import getLogger
 # from pprint import pprint
 import math
@@ -24,15 +24,17 @@ from rest_framework import status
 
 from djmoney.money import Money
 
-from online_store.general.error_messages import PRODUCT_NOT_FOUND
+from online_store.general.error_messages import PRODUCT_NOT_FOUND, OBJECT_NOT_FOUND
 from online_store.general.permissions import (
     IsManager, IsManagerOrReadOnly)
-from .models import Category, Product, Invoice
+from .models import Category, Product, Invoice, PriceAction
 from .filters import ProductFilters
 from .serializers import (
     CategorySerializer, ProductListItemSerializer, CreateProductSerializer,
     ProductFullSerializer, InvoiceSerializer, InvoiceListItemSerializer,
-    CreateInvoiceSerializer
+    CreateInvoiceSerializer, ProductPriceSerializer,
+    PriceActionSerializer, PriceActionListItemSerializer,
+    CreateActionSerializer, DisableActionSerializer
 )
 
 logger = getLogger(__name__)
@@ -307,7 +309,7 @@ class InvoiceView(APIView, LimitOffsetPagination):
 
     def get(self, request, *args, **kwargs):
         """
-        GET list of incomes with filtration
+        GET list of incomes
         """
         context = {'user': request.user}
         data = InvoiceListItemSerializer(
@@ -340,3 +342,130 @@ class InvoiceView(APIView, LimitOffsetPagination):
         else:
             raise ValidationError(
                 _("Something went wrong"), status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProductPriceView(APIView):
+    """
+    POST product price
+    """
+    permission_classes = [IsManager]
+    http_method_names = ['post']
+
+    def get_serializer_class(self):
+        """get serializer class"""
+        return ProductPriceSerializer
+
+    def post(self, request, pk):
+        """set product price"""
+        request_data = dict(request.data)
+
+        serializer = ProductPriceSerializer(data=request_data)
+        if not serializer.is_valid():
+            error_msg = _("Data is invalid, please check these fields:") + " "
+            error_msg += ", ".join([_(f"{key}") for key in serializer.errors.keys()])
+            serializer.validate(request_data)
+            return Response(error_msg, status=status.HTTP_400_BAD_REQUEST)
+
+        product = Product.objects.filter(pk=pk).first()
+        if product is None:
+            return Response(OBJECT_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
+
+        product.price = Money(Decimal(serializer.data['price']), 'UAH')
+        product.save()
+
+        return Response(
+            ProductFullSerializer(product).data, status=status.HTTP_201_CREATED)
+
+
+class PriceActionView(APIView, LimitOffsetPagination):
+    """
+    GET and POST price actions
+    """
+    permission_classes = [IsManager]
+    serializer_type_class = {
+        'get': PriceActionListItemSerializer,
+        'post': CreateActionSerializer,
+    }
+
+    def get_serializer_class(self):
+        """get serializer class"""
+        method = self.request.method.lower()
+        serializer = self.serializer_type_class.get(method)
+        if serializer:
+            return serializer
+        raise MethodNotAllowed(method=method)
+
+    def get_queryset(self):
+        """get queryset"""
+        queryset = PriceAction.objects.all().order_by('-id')
+
+        return queryset
+
+    def get(self, request, *args, **kwargs):
+        """
+        GET list of price actions
+        """
+        context = {'user': request.user}
+        data = PriceActionListItemSerializer(
+            self.get_queryset(), context=context, many=True).data
+
+        #response = self.get_paginated_response(data)
+
+        return Response(data)
+
+    def post(self, request, *args, **kwargs):
+        """create price action"""
+        request_data = dict(request.data)
+
+        serializer = CreateActionSerializer(data=request_data)
+        if not serializer.is_valid():
+            error_msg = _("Data is invalid, please check these fields:") + " "
+            error_msg += ", ".join([_(f"{key}") for key in serializer.errors.keys()])
+            serializer.validate(request_data)
+            return Response(error_msg, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            action = serializer.save()
+
+        if action:
+            return Response(
+                PriceActionSerializer(action).data,
+                status=status.HTTP_201_CREATED)
+        else:
+            raise ValidationError(
+                _("Something went wrong"), status=status.HTTP_400_BAD_REQUEST)
+
+
+class DisableActionView(APIView):
+    """
+    POST disable price action
+    """
+    permission_classes = [IsManager]
+    http_method_names = ['post']
+
+    def get_serializer_class(self):
+        """get serializer class"""
+        return DisableActionSerializer
+
+    def post(self, request):
+        """set product price"""
+        request_data = dict(request.data)
+
+        serializer = DisableActionSerializer(data=request_data)
+        if not serializer.is_valid():
+            error_msg = _("Data is invalid, please check these fields:") + " "
+            error_msg += ", ".join([_(f"{key}") for key in serializer.errors.keys()])
+            serializer.validate(request_data)
+            return Response(error_msg, status=status.HTTP_400_BAD_REQUEST)
+
+        action_id = serializer.data['pk']
+        action = PriceAction.objects.filter(pk=action_id).first()
+        if action is None:
+            return Response(OBJECT_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
+
+        action.active = False
+        action.save()
+
+        return Response(
+            PriceActionSerializer(action).data, status=status.HTTP_201_CREATED)
+

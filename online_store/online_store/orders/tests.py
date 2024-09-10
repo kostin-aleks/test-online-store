@@ -127,7 +127,7 @@ class ApiOrdersTestCase(ApiTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         item = Order.objects.filter(id=order_id).first()
         self.assertTrue(item)
-        self.assertTrue(item.moderation_status == 'rejected')
+        self.assertTrue(item.moderation_status.startswith('rejected'))
 
     def test_0050_pay_order(self):
         """

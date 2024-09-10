@@ -26,7 +26,8 @@ class Order(models.Model):
         NEW = ("new", _("New"))
         PAID = ("paid", _("Paid"))
         REJECTED = ("rejected", _("Rejected"))
-        CANCELLED_BY_MANAGER = ("cancelled_by_manager", _("Cancelled by manager"))
+        REJECTED_BY_MANAGER = ("rejected_by_manager", _("Rejected by manager"))
+        REJECTED_BY_CLIENT = ("rejected_by_client", _("Rejected by client"))
 
     uuid = models.UUIDField(_("uuid"), default=uuid.uuid4, editable=False)
     client = models.ForeignKey(

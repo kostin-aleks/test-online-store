@@ -136,10 +136,14 @@ class Product(models.Model):
         """
         available quantity for this product
         """
-        from online_store.orders.models import OrderItem
+        from online_store.orders.models import Order, OrderItem
 
         purchased = InvoiceItem.objects.filter(product=self).aggregate(Sum('amount'))
-        sold = OrderItem.objects.filter(product=self).aggregate(Sum('count'))
+        sold = OrderItem.objects.filter(
+            product=self
+        ).filter(
+            order__moderation_status__in=(Order.Statuses.NEW, Order.Statuses.PAID)
+        ).aggregate(Sum('count'))
         balance = (purchased['amount__sum'] or 0) - (sold['count__sum'] or 0)
         return balance if balance >= 0 else 0
 
@@ -153,7 +157,7 @@ class Invoice(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     def __str__(self) -> str:
-        return self.uuid
+        return f"{self.uuid}"
 
     class Meta:
         verbose_name = _("Invoice")
@@ -186,3 +190,21 @@ class InvoiceItem(models.Model):
         verbose_name = _("Invoice Item")
         verbose_name_plural = _("Invoice Items")
         db_table = 'products_invoice_item'
+
+
+class PriceAction(models.Model):
+    """
+    Price reduction action
+    """
+    date = models.DateField()
+    discount = models.IntegerField()
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f"{self.id}-{self.date}-{self.discount}"
+
+    class Meta:
+        verbose_name = _("Price reduction action")
+        verbose_name_plural = _("Price reduction actions")
+        db_table = 'products_price_action'

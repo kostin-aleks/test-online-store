@@ -139,15 +139,24 @@ class OrderByIdView(RetrieveUpdateDestroyAPIView):
         context = self.get_serializer_context()
         return Response(serializer_class(order, context=context).data)
 
-    def delete(self, request, *args, **kwargs):
+    def delete(self, request, pk):
         """delete (set status) one order by id """
-        order_id = kwargs.get('pk')
+        order_id = pk
+        user = request.user
 
         order = Order.objects.filter(pk=order_id).first()
         if order is None:
             return Response(ORDER_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
 
-        order.moderation_status = Order.Statuses.REJECTED
+        if not (order.client == user or user.userprofile.has_manager_permission()):
+            return Response(ACCESS_DENIED, status=status.HTTP_403_FORBIDDEN)
+
+        if order.client == user:
+            order.moderation_status = Order.Statuses.REJECTED_BY_CLIENT
+        else:
+            if user.userprofile.has_manager_permission():
+                order.moderation_status = Order.Statuses.REJECTED_BY_MANAGER
+
         order.save()
 
         return Response("Success")

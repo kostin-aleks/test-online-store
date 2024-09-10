@@ -6,7 +6,7 @@ from datetime import date
 from decimal import Decimal
 import json
 from faker import Faker
-# from pprint import pprint
+from pprint import pprint
 import random
 import unittest
 
@@ -15,7 +15,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from .models import Category, SubCategory, Product
+from .models import Category, SubCategory, Product, PriceAction
 from online_store.general.test_utils import (get_test_user, ApiTestCase)
 
 
@@ -242,3 +242,78 @@ class ApiProductsTestCase(ApiTestCase):
         # pprint(data)
         self.assertTrue(data['uuid'])
         self.assertTrue(len(data['items']))
+
+    def test_0060_set_product_price(self):
+        """
+        end-point product-price
+        POST
+        """
+        self.user_manager = get_test_user(role='manager')
+        self.user_token, self.refresh_token = self.get_jwt_token(role='manager')
+        self.set_headers()
+
+        product = Product.objects.visible().first()
+        current_price = product.price.amount
+        uuid = product.uuid
+
+        data = {'price': current_price + 1}
+        response = self.client.post(reverse('product-price', args=[product.id]), data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response_data = json.loads(response.content)
+
+        self.assertTrue(response_data['price'] > current_price)
+        self.assertTrue(response_data['uuid'] == str(uuid))
+
+    def test_0070_action(self):
+        """end-point POST actions"""
+        self.user_manager = get_test_user(role='manager')
+        self.user_token, self.refresh_token = self.get_jwt_token(role='manager')
+        self.set_headers()
+
+        data = {
+            "date": date.today().strftime('%Y-%m-%d'),
+            "discount": 10
+        }
+
+        response = self.client.post(reverse('actions'), data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = json.loads(response.content)
+        # pprint(data)
+        self.assertTrue(data['discount'])
+
+    def test_0080_actions(self):
+        """
+        end-point actions
+        GET
+        """
+        self.user_manager = get_test_user(role='manager')
+        self.user_token, self.refresh_token = self.get_jwt_token(role='manager')
+        self.set_headers()
+
+        response = self.client.get(reverse('actions'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = json.loads(response.content)
+        # pprint(data)
+        results = data
+        self.assertTrue(results)
+        result = results[0]
+        self.assertTrue(result['discount'])
+        self.assertTrue(result['id'])
+
+    def test_0090_action(self):
+        """end-point POST disable-price-action"""
+        self.user_manager = get_test_user(role='manager')
+        self.user_token, self.refresh_token = self.get_jwt_token(role='manager')
+        self.set_headers()
+
+        action = PriceAction.objects.first()
+        data = {
+            "pk": action.id,
+        }
+
+        response = self.client.post(
+            reverse('disable-price-action'), data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = json.loads(response.content)
+        # pprint(data)
+        self.assertTrue(data['discount'])

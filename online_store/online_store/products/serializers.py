@@ -9,7 +9,7 @@ from rest_framework import serializers
 
 from djmoney.money import Money
 
-from .models import Category, SubCategory, Product, Invoice, InvoiceItem
+from .models import Category, SubCategory, Product, Invoice, InvoiceItem, PriceAction
 
 
 class SubCategorySerializer(serializers.ModelSerializer):
@@ -203,3 +203,63 @@ class InvoiceListItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         fields = '__all__'
+
+
+class ProductPriceSerializer(serializers.Serializer):
+    price = serializers.FloatField()
+
+
+class CreateActionSerializer(serializers.Serializer):
+    """
+    Data to create Price Action
+    """
+    date = serializers.DateField(input_formats=['%d-%m-%Y', 'iso-8601'])
+    discount = serializers.IntegerField()
+
+    class Meta:
+        fields = ['date', 'discount']
+
+    def create(self, validated_data):
+        """custom creating"""
+
+        instance = PriceAction.objects.create(
+            date=validated_data['date'],
+            discount=validated_data['discount'],
+            active=True,
+        )
+
+        return instance
+
+
+class PriceActionItemOutSerializer(serializers.ModelSerializer):
+    """
+    Price Action
+    """
+
+    class Meta:
+        model = PriceAction
+        fields = ['id', 'date', 'discount', 'active']
+
+
+class PriceActionSerializer(serializers.ModelSerializer):
+    """
+    Price Action
+    """
+
+    class Meta:
+        model = PriceAction
+        fields = ['id', 'date', 'discount', 'active']
+
+
+class PriceActionListItemSerializer(serializers.ModelSerializer):
+    """
+    Price Action
+    """
+
+    class Meta:
+        model = PriceAction
+        fields = '__all__'
+
+
+class DisableActionSerializer(serializers.Serializer):
+    pk = serializers.IntegerField()

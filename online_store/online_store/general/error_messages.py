@@ -15,3 +15,5 @@ ACCESS_DENIED = _("Access denied. The user is not the manager")
 
 # Orders
 ORDER_NOT_FOUND = _("Order not found")
+
+OBJECT_NOT_FOUND = _("Object not found")

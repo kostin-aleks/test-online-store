@@ -51,19 +51,19 @@
 
 Для получения токена используйте
 
-post /accounts/signin
+`post /accounts/signin`
 
 Для регистрации нового пользователя используйте
 
-post /accounts/signup
+`post /accounts/signup`
 
 просмотр своего профиля
 
-get /accounts/profile
+`get /accounts/profile`
 
 изменение своего профиля
 
-put /accounts/profile
+`put /accounts/profile`
 
 Пользователи делятся на обычных и с правом менеджера.
 
@@ -77,33 +77,33 @@ put /accounts/profile
 
 1. отримання списку товарів
 
-get /products
+`get /products`
 
-get /products/:pk
+`get /products/:pk`
 
-get /categories
+`get /categories`
 
 2. фільтр товарів за категоріями, підкатегоріями
 
-/products
+`/products`
 
 параметры фильтрации в query string: category (список slug), subcategory (список slug), min_price, max_price
 
 3. додавання товару
 
-post /products
+`post /products`
 
-put /products/:pk
+`put /products/:pk`
 
 4. зміна ціни
 
-post /products/:pk/price
+`post /products/:pk/price`
 
 5. старт акції (процент знижки)
 
-post /products/action
+`post /products/action`
 
-post /products/action/disable
+`post /products/action/disable`
 
 Хранится дата старта акции, скидка в процентах, флаг активности.
 
@@ -111,33 +111,33 @@ post /products/action/disable
 
 6. видалення товару
 
-delete /products/:pk
+`delete /products/:pk`
 
 товар не удаляется из базы, присваивается статус удалённого, товар не виден в запросах.
 
 7. резервування товару
 
-post /orders
+`post /orders`
 
 список заказов
 
-get /orders
+`get /orders`
 
-get /orders/:pk
+`get /orders/:pk`
 
 8. скасування резерву
 
-delete /orders/:pk
+`delete /orders/:pk`
 
 заказ не удаляется, получает статус rejected
 
 9. продажа товару
 
-post /orders/payment
+`post /orders/payment`
 
 10. звіт про товари що були продані можливими фільтрами
 
-get /orders/sold
+`get /orders/sold`
 
 фильтр по date_from, date_to, category, subcategory, product
 
@@ -145,5 +145,5 @@ get /orders/sold
 
 Счёт пополняется менеджером или в админке или запросом
 
-post /accounts/topup/account
+`post /accounts/topup/account`
 
